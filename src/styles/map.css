@@ -1,0 +1,18 @@
+/* Custom styles for Leaflet map */
+.custom-marker {
+  background: transparent;
+  border: none;
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.leaflet-popup-content {
+  margin: 0;
+}
+
+.leaflet-container {
+  font-family: inherit;
+}
