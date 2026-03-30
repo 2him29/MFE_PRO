@@ -10,7 +10,8 @@ export interface Tenant {
   accentColorDark: string;
 }
 
-export type UserRole = 'super_admin' | 'operator' | 'support';
+export type UserRole = 'super_admin' | 'tenant_admin' | 'technician';
+export type UserStatus = 'active' | 'suspended';
 
 export interface User {
   id: string;
@@ -18,6 +19,7 @@ export interface User {
   name: string;
   role: UserRole;
   tenantId: TenantId;
+  status?: UserStatus;
 }
 
 // Station Types
@@ -59,15 +61,26 @@ export interface Session {
 // Ticket Types
 export type TicketPriority = 'low' | 'medium' | 'high' | 'critical';
 export type TicketStatus = 'open' | 'in_progress' | 'resolved' | 'escalated';
+export type TicketCategory =
+  | 'power_failure'
+  | 'screen_issue'
+  | 'charger_fault'
+  | 'system_failure'
+  | 'network_issue'
+  | 'maintenance';
 
 export interface Ticket {
   id: string;
   title: string;
   description: string;
   stationName: string;
+  category: TicketCategory;
   priority: TicketPriority;
   status: TicketStatus;
   assignedTo: string | null;
+  assignedToId?: string | null;
+  createdById?: string;
+  createdBy?: string;
   createdAt: Date;
   updatedAt: Date;
   tenantId: TenantId;

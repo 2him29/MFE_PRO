@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { Tenant, TenantId, User } from '../types';
 import saeigLogo from '../../assets/198be664671f0d576c88319af1aa885e47226781.png';
+import sonelgazLogo from '../../assets/sonelgaz-logo.png';
 
 interface TenantContextType {
   currentTenant: Tenant | null;
@@ -17,8 +18,9 @@ export const tenants: Record<TenantId, Tenant> = {
     id: 'sonelgaz',
     name: 'Sonelgaz',
     logo: 'SG',
-    accentColor: '#16a34a',
-    accentColorDark: '#15803d',
+    logoImage: sonelgazLogo,
+    accentColor: '#f97316',
+    accentColorDark: '#ea580c',
   },
   saeig: {
     id: 'saeig',

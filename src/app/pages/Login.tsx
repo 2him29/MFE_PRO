@@ -5,35 +5,61 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
-import { User } from '../types';
+import { User, UserRole } from '../types';
+import { mockUsers } from '../data/mockData';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../components/ui/select';
 
 export default function Login() {
   const [step, setStep] = useState<'login' | 'company'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [role, setRole] = useState<UserRole>('tenant_admin');
+  const [superAdminCode, setSuperAdminCode] = useState('');
+  const [codeError, setCodeError] = useState('');
   const { setCurrentTenant, setCurrentUser } = useTenant();
   const navigate = useNavigate();
+  const superAdminUnlocked = superAdminCode === 'EV-SUPER-2026';
+  const isSuperAdmin = role === 'super_admin';
 
   const handleLogin = (e: FormEvent) => {
     e.preventDefault();
     // Mock login validation
+    if (isSuperAdmin && !superAdminUnlocked) {
+      setCodeError('Invalid Super Admin access code.');
+      return;
+    }
+    setCodeError('');
     if (email && password) {
       setStep('company');
     }
   };
 
   const handleCompanySelect = (tenantId: 'sonelgaz' | 'saeig') => {
-    const tenant = tenants[tenantId];
+    const matchingUser = mockUsers.find(
+      (user) => user.email.toLowerCase() === email.toLowerCase()
+    );
+    const tenant = tenants[matchingUser?.tenantId || tenantId];
     setCurrentTenant(tenant);
 
     // Mock user creation
-    const user: User = {
-      id: '1',
-      email,
-      name: email.split('@')[0],
-      role: 'super_admin',
-      tenantId,
-    };
+    const user: User = matchingUser
+      ? {
+          ...matchingUser,
+          email,
+        }
+      : {
+          id: '1',
+          email,
+          name: email.split('@')[0],
+          role,
+          tenantId,
+        };
     setCurrentUser(user);
 
     navigate('/dashboard');
@@ -197,6 +223,52 @@ export default function Login() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="super-admin-code">Super Admin Access Code</Label>
+              <Input
+                id="super-admin-code"
+                type="password"
+                placeholder="Enter access code"
+                value={superAdminCode}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setSuperAdminCode(value);
+                  if (value === 'EV-SUPER-2026') {
+                    setCodeError('');
+                    setRole('super_admin');
+                  }
+                  if (value !== 'EV-SUPER-2026' && role === 'super_admin') {
+                    setRole('tenant_admin');
+                  }
+                }}
+              />
+              <p className="text-xs text-gray-500">
+                Leave blank unless you are a Super Admin.
+              </p>
+              {codeError && (
+                <p className="text-xs text-red-600">{codeError}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="role">Role</Label>
+              <Select value={role} onValueChange={(value) => setRole(value as UserRole)}>
+                <SelectTrigger id="role">
+                  <SelectValue placeholder="Select a role" />
+                </SelectTrigger>
+                <SelectContent>
+                  {superAdminUnlocked && (
+                    <SelectItem value="super_admin">Super Admin</SelectItem>
+                  )}
+                  <SelectItem value="tenant_admin">Tenant Admin</SelectItem>
+                  <SelectItem value="technician">Technician</SelectItem>
+                </SelectContent>
+              </Select>
+              {!superAdminUnlocked && (
+                <p className="text-xs text-gray-500">
+                  Super Admin is locked without the access code.
+                </p>
+              )}
             </div>
             <Button type="submit" className="w-full">
               Sign In
