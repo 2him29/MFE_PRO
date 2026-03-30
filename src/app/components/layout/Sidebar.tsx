@@ -5,23 +5,66 @@ import {
   Activity,
   AlertCircle,
   FileText,
+  Users,
+  ClipboardCheck,
 } from 'lucide-react';
 import { useTenant } from '../../contexts/TenantContext';
 
 const menuItems = [
-  { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { path: '/stations', icon: Zap, label: 'Stations' },
-  { path: '/sessions', icon: Activity, label: 'Sessions' },
-  { path: '/tickets', icon: AlertCircle, label: 'Tickets' },
-  { path: '/billing', icon: FileText, label: 'Billing' },
+  {
+    path: '/dashboard',
+    icon: LayoutDashboard,
+    label: 'Dashboard',
+    roles: ['super_admin', 'tenant_admin', 'technician'],
+  },
+  {
+    path: '/stations',
+    icon: Zap,
+    label: 'Stations',
+    roles: ['super_admin', 'tenant_admin'],
+  },
+  {
+    path: '/sessions',
+    icon: Activity,
+    label: 'Sessions',
+    roles: ['super_admin', 'tenant_admin'],
+  },
+  {
+    path: '/tickets',
+    icon: AlertCircle,
+    label: 'Tasks & Incidents',
+    roles: ['super_admin', 'tenant_admin'],
+  },
+  {
+    path: '/my-tasks',
+    icon: ClipboardCheck,
+    label: 'My Tasks',
+    roles: ['technician'],
+  },
+  {
+    path: '/billing',
+    icon: FileText,
+    label: 'Billing',
+    roles: ['super_admin', 'tenant_admin'],
+  },
+  {
+    path: '/users',
+    icon: Users,
+    label: 'User Management',
+    roles: ['super_admin'],
+  },
 ];
 
 export function Sidebar() {
-  const { currentTenant } = useTenant();
+  const { currentTenant, currentUser } = useTenant();
 
   const tenantGradient = currentTenant?.id === 'sonelgaz'
     ? 'from-green-600 to-green-700'
     : 'from-blue-600 to-blue-700';
+
+  const visibleMenuItems = menuItems.filter((item) =>
+    item.roles.includes(currentUser?.role || 'technician')
+  );
 
   return (
     <aside className="fixed left-0 top-0 h-screen w-64 bg-gray-900 text-white flex flex-col shadow-2xl">
@@ -63,7 +106,7 @@ export function Sidebar() {
       {/* Navigation */}
       <nav className="flex-1 p-4">
         <ul className="space-y-2">
-          {menuItems.map((item) => (
+          {visibleMenuItems.map((item) => (
             <li key={item.path}>
               <NavLink
                 to={item.path}

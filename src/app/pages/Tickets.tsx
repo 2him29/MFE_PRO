@@ -7,6 +7,9 @@ import { SideDrawer } from '../components/dashboard/SideDrawer';
 import { ActivityLog } from '../components/dashboard/ActivityLog';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
+import { Textarea } from '../components/ui/textarea';
 import {
   Table,
   TableBody,
@@ -16,8 +19,15 @@ import {
   TableRow,
 } from '../components/ui/table';
 import { Badge } from '../components/ui/badge';
-import { mockTickets } from '../data/mockData';
-import { Ticket, TicketActivity } from '../types';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../components/ui/select';
+import { mockTickets, mockUsers } from '../data/mockData';
+import { Ticket, TicketActivity, TicketCategory, TicketStatus } from '../types';
 import { format, formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
 
@@ -31,26 +41,35 @@ const mockTicketActivities: TicketActivity[] = [
   },
   {
     id: '2',
-    action: 'Assigned to Ahmed Benali',
-    user: 'Supervisor',
+    action: 'Assigned to Yasmine Hadj',
+    user: 'Nadia Amara',
     timestamp: new Date(Date.now() - 5400000),
     details: 'Priority set to high',
   },
   {
     id: '3',
     action: 'Status updated to In Progress',
-    user: 'Ahmed Benali',
+    user: 'Yasmine Hadj',
     timestamp: new Date(Date.now() - 3600000),
     details: 'Started diagnostics',
   },
   {
     id: '4',
     action: 'Comment added',
-    user: 'Ahmed Benali',
+    user: 'Yasmine Hadj',
     timestamp: new Date(Date.now() - 1800000),
     details: 'Connector hardware issue identified',
   },
 ];
+
+const categoryLabels: Record<string, string> = {
+  power_failure: 'Power Failure',
+  screen_issue: 'Screen Issue',
+  charger_fault: 'Charger Fault',
+  system_failure: 'System Failure',
+  network_issue: 'Network Issue',
+  maintenance: 'Maintenance',
+};
 
 export default function Tickets() {
   const { currentTenant } = useTenant();
@@ -59,6 +78,21 @@ export default function Tickets() {
   const [priorityFilter, setPriorityFilter] = useState('all');
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [actionDrawer, setActionDrawer] = useState<{
+    open: boolean;
+    mode: 'create' | 'status' | 'comment';
+    ticket: Ticket | null;
+  }>({ open: false, mode: 'create', ticket: null });
+  const [title, setTitle] = useState('');
+  const [stationName, setStationName] = useState('');
+  const [category, setCategory] = useState<TicketCategory>('charger_fault');
+  const [priority, setPriority] = useState<'low' | 'medium' | 'high' | 'critical'>(
+    'medium'
+  );
+  const [assignedToId, setAssignedToId] = useState('unassigned');
+  const [description, setDescription] = useState('');
+  const [statusUpdate, setStatusUpdate] = useState<TicketStatus>('open');
+  const [note, setNote] = useState('');
 
   const filteredTickets = mockTickets.filter((ticket) => {
     if (currentTenant && ticket.tenantId !== currentTenant.id) return false;
@@ -79,6 +113,27 @@ export default function Tickets() {
     setDrawerOpen(true);
   };
 
+  const handleOpenCreate = () => {
+    setTitle('');
+    setStationName('');
+    setCategory('charger_fault');
+    setPriority('medium');
+    setAssignedToId('unassigned');
+    setDescription('');
+    setActionDrawer({ open: true, mode: 'create', ticket: null });
+  };
+
+  const handleOpenStatus = (ticket: Ticket) => {
+    setStatusUpdate(ticket.status);
+    setNote('');
+    setActionDrawer({ open: true, mode: 'status', ticket });
+  };
+
+  const handleOpenComment = (ticket: Ticket) => {
+    setNote('');
+    setActionDrawer({ open: true, mode: 'comment', ticket });
+  };
+
   const getSLAColor = (deadline: Date) => {
     const hoursRemaining = (deadline.getTime() - Date.now()) / (1000 * 60 * 60);
     if (hoursRemaining < 2) return 'text-red-600';
@@ -86,15 +141,20 @@ export default function Tickets() {
     return 'text-green-600';
   };
 
+  const assignableUsers = mockUsers.filter((user) => {
+    if (currentTenant && user.tenantId !== currentTenant.id) return false;
+    return user.role !== 'super_admin';
+  });
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-semibold">Tickets & Incidents</h1>
-          <p className="text-gray-500 mt-1">Track and resolve station issues</p>
+          <h1 className="text-3xl font-semibold">Tasks & Incidents</h1>
+          <p className="text-gray-500 mt-1">Assign teams and track station issues</p>
         </div>
-        <Button onClick={() => toast.success('New ticket form opened')}>
+        <Button onClick={handleOpenCreate}>
           <Plus className="h-4 w-4 mr-2" />
           Create Ticket
         </Button>
@@ -138,6 +198,7 @@ export default function Tickets() {
                 <TableHead>Ticket ID</TableHead>
                 <TableHead>Title</TableHead>
                 <TableHead>Station</TableHead>
+                <TableHead>Category</TableHead>
                 <TableHead>Priority</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Assigned To</TableHead>
@@ -149,7 +210,7 @@ export default function Tickets() {
             <TableBody>
               {filteredTickets.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="text-center py-8 text-gray-500">
+                  <TableCell colSpan={10} className="text-center py-8 text-gray-500">
                     No tickets found
                   </TableCell>
                 </TableRow>
@@ -168,6 +229,11 @@ export default function Tickets() {
                     </TableCell>
                     <TableCell>
                       <span className="text-sm">{ticket.stationName}</span>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="text-xs">
+                        {categoryLabels[ticket.category] || 'General'}
+                      </Badge>
                     </TableCell>
                     <TableCell>
                       <StatusChip status={ticket.priority} type="priority" />
@@ -244,6 +310,12 @@ export default function Tickets() {
             {/* Details */}
             <div className="grid grid-cols-2 gap-4">
               <div>
+                <p className="text-xs text-gray-500 mb-1">Category</p>
+                <p className="text-sm font-medium">
+                  {categoryLabels[selectedTicket.category] || 'General'}
+                </p>
+              </div>
+              <div>
                 <p className="text-xs text-gray-500 mb-1">Station</p>
                 <p className="text-sm font-medium">{selectedTicket.stationName}</p>
               </div>
@@ -251,6 +323,12 @@ export default function Tickets() {
                 <p className="text-xs text-gray-500 mb-1">Assigned To</p>
                 <p className="text-sm font-medium">
                   {selectedTicket.assignedTo || 'Unassigned'}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 mb-1">Created By</p>
+                <p className="text-sm font-medium">
+                  {selectedTicket.createdBy || 'System'}
                 </p>
               </div>
               <div>
@@ -272,18 +350,221 @@ export default function Tickets() {
 
             {/* Actions */}
             <div className="flex gap-2">
-              <Button className="flex-1" onClick={() => toast.success('Ticket updated')}>
+              <Button
+                className="flex-1"
+                onClick={() => selectedTicket && handleOpenStatus(selectedTicket)}
+              >
                 Update Status
               </Button>
               <Button
                 variant="outline"
                 className="flex-1"
-                onClick={() => toast.success('Comment added')}
+                onClick={() => selectedTicket && handleOpenComment(selectedTicket)}
               >
                 Add Comment
               </Button>
             </div>
           </div>
+        )}
+      </SideDrawer>
+
+      <SideDrawer
+        open={actionDrawer.open}
+        onOpenChange={(open) => setActionDrawer((prev) => ({ ...prev, open }))}
+        title={
+          actionDrawer.mode === 'create'
+            ? 'Create Task'
+            : actionDrawer.mode === 'status'
+              ? 'Update Status'
+              : 'Add Field Report'
+        }
+        description={
+          actionDrawer.mode === 'create'
+            ? 'Assign a task to a technician'
+            : actionDrawer.ticket?.id
+        }
+      >
+        {actionDrawer.mode === 'create' && (
+          <form
+            className="space-y-4"
+            onSubmit={(event) => {
+              event.preventDefault();
+              toast.success('Task created and assigned');
+              setActionDrawer((prev) => ({ ...prev, open: false }));
+            }}
+          >
+            <div className="space-y-2">
+              <Label htmlFor="ticket-title">Title</Label>
+              <Input
+                id="ticket-title"
+                value={title}
+                onChange={(event) => setTitle(event.target.value)}
+                placeholder="Charger not responding"
+                required
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="ticket-station">Station</Label>
+                <Input
+                  id="ticket-station"
+                  value={stationName}
+                  onChange={(event) => setStationName(event.target.value)}
+                  placeholder="Constantine Plaza"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="ticket-category">Category</Label>
+                <Select value={category} onValueChange={(value) => setCategory(value as TicketCategory)}>
+                  <SelectTrigger id="ticket-category">
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="power_failure">Power Failure</SelectItem>
+                    <SelectItem value="screen_issue">Screen Issue</SelectItem>
+                    <SelectItem value="charger_fault">Charger Fault</SelectItem>
+                    <SelectItem value="system_failure">System Failure</SelectItem>
+                    <SelectItem value="network_issue">Network Issue</SelectItem>
+                    <SelectItem value="maintenance">Maintenance</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="ticket-priority">Priority</Label>
+                <Select value={priority} onValueChange={(value) => setPriority(value as Ticket['priority'])}>
+                  <SelectTrigger id="ticket-priority">
+                    <SelectValue placeholder="Select priority" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">Low</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="high">High</SelectItem>
+                    <SelectItem value="critical">Critical</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="ticket-assignee">Assign To</Label>
+                <Select value={assignedToId} onValueChange={setAssignedToId}>
+                  <SelectTrigger id="ticket-assignee">
+                    <SelectValue placeholder="Select technician" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="unassigned">Unassigned</SelectItem>
+                    {assignableUsers.map((user) => (
+                      <SelectItem key={user.id} value={user.id}>
+                        {user.name} · {user.role === 'technician' ? 'Technician' : 'Tenant Admin'}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="ticket-description">Description</Label>
+              <Textarea
+                id="ticket-description"
+                value={description}
+                onChange={(event) => setDescription(event.target.value)}
+                placeholder="Describe the issue and required checks..."
+                rows={4}
+                required
+              />
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setActionDrawer((prev) => ({ ...prev, open: false }))}
+              >
+                Cancel
+              </Button>
+              <Button type="submit">Create Task</Button>
+            </div>
+          </form>
+        )}
+
+        {actionDrawer.mode === 'status' && actionDrawer.ticket && (
+          <form
+            className="space-y-4"
+            onSubmit={(event) => {
+              event.preventDefault();
+              toast.success(`Status updated for ${actionDrawer.ticket?.id}`);
+              setActionDrawer((prev) => ({ ...prev, open: false }));
+            }}
+          >
+            <div className="space-y-2">
+              <Label htmlFor="ticket-status">Status</Label>
+              <Select value={statusUpdate} onValueChange={(value) => setStatusUpdate(value as TicketStatus)}>
+                <SelectTrigger id="ticket-status">
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="open">Open</SelectItem>
+                  <SelectItem value="in_progress">In Progress</SelectItem>
+                  <SelectItem value="resolved">Resolved</SelectItem>
+                  <SelectItem value="escalated">Escalated</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="ticket-note">Note</Label>
+              <Textarea
+                id="ticket-note"
+                value={note}
+                onChange={(event) => setNote(event.target.value)}
+                placeholder="Add an operational note..."
+                rows={4}
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setActionDrawer((prev) => ({ ...prev, open: false }))}
+              >
+                Cancel
+              </Button>
+              <Button type="submit">Save Update</Button>
+            </div>
+          </form>
+        )}
+
+        {actionDrawer.mode === 'comment' && actionDrawer.ticket && (
+          <form
+            className="space-y-4"
+            onSubmit={(event) => {
+              event.preventDefault();
+              toast.success(`Report logged for ${actionDrawer.ticket?.id}`);
+              setActionDrawer((prev) => ({ ...prev, open: false }));
+            }}
+          >
+            <div className="space-y-2">
+              <Label htmlFor="ticket-report">Field Report</Label>
+              <Textarea
+                id="ticket-report"
+                value={note}
+                onChange={(event) => setNote(event.target.value)}
+                placeholder="Describe anomalies and your findings..."
+                rows={5}
+                required
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setActionDrawer((prev) => ({ ...prev, open: false }))}
+              >
+                Cancel
+              </Button>
+              <Button type="submit">Submit Report</Button>
+            </div>
+          </form>
         )}
       </SideDrawer>
     </div>

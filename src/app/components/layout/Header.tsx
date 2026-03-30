@@ -29,11 +29,13 @@ export function Header() {
   const getRoleBadge = () => {
     const roleLabels = {
       super_admin: 'Super Admin',
-      operator: 'Operator',
-      support: 'Support',
+      tenant_admin: 'Tenant Admin',
+      technician: 'Technician',
     };
-    return roleLabels[currentUser?.role || 'operator'];
+    return roleLabels[currentUser?.role || 'technician'];
   };
+
+  const canSwitchTenant = currentUser?.role !== 'technician';
 
   return (
     <header className="fixed top-0 left-64 right-0 h-16 bg-white border-b shadow-sm flex items-center justify-between px-6 z-20">
@@ -91,57 +93,59 @@ export function Header() {
         </Button>
 
         {/* Company Switcher */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="gap-2">
-              <Building2 className="h-4 w-4" />
-              Switch Company
-              <ChevronDown className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuItem
-              onClick={() => handleTenantSwitch('sonelgaz')}
-              className="gap-2"
-            >
-              {tenants.sonelgaz.logoImage ? (
-                <div className="w-8 h-8 flex items-center justify-center">
-                  <img
-                    src={tenants.sonelgaz.logoImage}
-                    alt="Sonelgaz Logo"
-                    className="w-full h-full object-contain"
-                  />
+        {canSwitchTenant && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="gap-2">
+                <Building2 className="h-4 w-4" />
+                Switch Company
+                <ChevronDown className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem
+                onClick={() => handleTenantSwitch('sonelgaz')}
+                className="gap-2"
+              >
+                {tenants.sonelgaz.logoImage ? (
+                  <div className="w-8 h-8 flex items-center justify-center">
+                    <img
+                      src={tenants.sonelgaz.logoImage}
+                      alt="Sonelgaz Logo"
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                ) : (
+                  <span className="text-lg">{tenants.sonelgaz.logo}</span>
+                )}
+                <div>
+                  <p className="font-medium">{tenants.sonelgaz.name}</p>
+                  <p className="text-xs text-gray-500">National Energy Provider</p>
                 </div>
-              ) : (
-                <span className="text-lg">{tenants.sonelgaz.logo}</span>
-              )}
-              <div>
-                <p className="font-medium">{tenants.sonelgaz.name}</p>
-                <p className="text-xs text-gray-500">National Energy Provider</p>
-              </div>
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => handleTenantSwitch('saeig')}
-              className="gap-2"
-            >
-              {tenants.saeig.logoImage ? (
-                <div className="w-8 h-8 flex items-center justify-center">
-                  <img
-                    src={tenants.saeig.logoImage}
-                    alt="SAEIG Logo"
-                    className="w-full h-full object-contain"
-                  />
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => handleTenantSwitch('saeig')}
+                className="gap-2"
+              >
+                {tenants.saeig.logoImage ? (
+                  <div className="w-8 h-8 flex items-center justify-center">
+                    <img
+                      src={tenants.saeig.logoImage}
+                      alt="SAEIG Logo"
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                ) : (
+                  <span className="text-lg">{tenants.saeig.logo}</span>
+                )}
+                <div>
+                  <p className="font-medium">{tenants.saeig.name}</p>
+                  <p className="text-xs text-gray-500">Industrial Services</p>
                 </div>
-              ) : (
-                <span className="text-lg">{tenants.saeig.logo}</span>
-              )}
-              <div>
-                <p className="font-medium">{tenants.saeig.name}</p>
-                <p className="text-xs text-gray-500">Industrial Services</p>
-              </div>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
 
         {/* User Profile */}
         <DropdownMenu>
