@@ -107,6 +107,11 @@ export default function Billing() {
       refundAmount: 0,
     }
   );
+  const billableAmount = summary.paidAmount + summary.unpaidAmount;
+  const paidRate = billableAmount > 0 ? (summary.paidAmount / billableAmount) * 100 : 0;
+  const unpaidRate = billableAmount > 0 ? (summary.unpaidAmount / billableAmount) * 100 : 0;
+  const collectionRate = billableAmount > 0 ? (summary.paidAmount / billableAmount) * 100 : 0;
+  const refundRate = billableAmount > 0 ? (summary.refundAmount / billableAmount) * 100 : 0;
 
   const handleExport = (format: 'pdf' | 'csv') => {
     toast.success(`Exporting billing data as ${format.toUpperCase()}...`);
@@ -163,7 +168,7 @@ export default function Billing() {
               {summary.paidAmount.toLocaleString()} DZD
             </p>
             <p className="text-xs text-gray-500 mt-1">
-              {((summary.paidAmount / summary.totalRevenue) * 100).toFixed(1)}% of total
+              {paidRate.toFixed(1)}% of billable amount
             </p>
           </CardContent>
         </Card>
@@ -180,7 +185,7 @@ export default function Billing() {
               {summary.unpaidAmount.toLocaleString()} DZD
             </p>
             <p className="text-xs text-gray-500 mt-1">
-              {((summary.unpaidAmount / summary.totalRevenue) * 100).toFixed(1)}% of total
+              {unpaidRate.toFixed(1)}% of billable amount
             </p>
           </CardContent>
         </Card>
@@ -457,18 +462,14 @@ export default function Billing() {
             <div className="space-y-2">
               <p className="text-sm text-gray-600">Collection Rate</p>
               <p className="text-2xl font-semibold">
-                {((summary.paidAmount / (summary.paidAmount + summary.unpaidAmount)) * 100).toFixed(
-                  1
-                )}
+                {collectionRate.toFixed(1)}
                 %
               </p>
               <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-green-500"
                   style={{
-                    width: `${
-                      (summary.paidAmount / (summary.paidAmount + summary.unpaidAmount)) * 100
-                    }%`,
+                    width: `${collectionRate}%`,
                   }}
                 />
               </div>
@@ -485,7 +486,7 @@ export default function Billing() {
             <div className="space-y-2">
               <p className="text-sm text-gray-600">Refund Rate</p>
               <p className="text-2xl font-semibold text-orange-600">
-                {((summary.refundAmount / summary.totalRevenue) * 100).toFixed(2)}%
+                {refundRate.toFixed(2)}%
               </p>
               <p className="text-xs text-gray-500">Total refunded</p>
             </div>

@@ -22,9 +22,10 @@ const createCustomIcon = (status: Station['status']) => {
     charging: '#f59e0b',
     offline: '#6b7280',
     fault: '#dc2626',
+    maintenance: '#ea580c',
   };
 
-  const color = colors[status];
+  const color = colors[status] ?? '#2563eb';
 
   return L.divIcon({
     className: 'custom-marker',

@@ -38,7 +38,7 @@ This is an MVP (v1) desktop-first admin dashboard built for EV charging station 
 
 ### 3. Stations Management
 - Table view with comprehensive station data
-- Map view placeholder for geographic visualization
+- Interactive map view for geographic visualization
 - Advanced filtering:
   - Status (Available, Charging, Fault, Offline, Maintenance)
   - City
@@ -180,7 +180,7 @@ This is an MVP (v1) desktop-first admin dashboard built for EV charging station 
 ## Mock Data
 
 Comprehensive mock data representing realistic Algerian EV charging operations:
-- 8 charging stations across major cities (Alger, Oran, Constantine, Annaba, etc.)
+- 12 charging stations across major cities (Alger, Oran, Constantine, Annaba, etc.)
 - Active and completed charging sessions
 - Open, in-progress, and resolved tickets
 - Billing records with various payment states
@@ -229,7 +229,7 @@ src/app/
 
 - Demo login accepts any email/password combination
 - All actions show toast notifications (no actual state changes in MVP)
-- Map view is a placeholder for future integration
+- Stations map uses Leaflet with live marker rendering and popups
 - Data is filtered by selected tenant context
 - Currency is in DZD (Algerian Dinar)
 - Power ratings in kW (kilowatts)

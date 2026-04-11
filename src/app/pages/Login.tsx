@@ -1,12 +1,12 @@
-import { useState, type FormEvent } from 'react';
+import { useMemo, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTenant, tenants } from '../contexts/TenantContext';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
-import { User, UserRole } from '../types';
-import { mockUsers } from '../data/mockData';
+import { TenantId, User, UserRole } from '../types';
+import { loadUsers } from '../data/userStore';
 import {
   Select,
   SelectContent,
@@ -14,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../components/ui/select';
+import loginBg from '../../assets/evcharge.png';
 
 export default function Login() {
   const [step, setStep] = useState<'login' | 'company'>('login');
@@ -22,10 +23,16 @@ export default function Login() {
   const [role, setRole] = useState<UserRole>('tenant_admin');
   const [superAdminCode, setSuperAdminCode] = useState('');
   const [codeError, setCodeError] = useState('');
+  const [isCharging, setIsCharging] = useState(false);
+  const [chargeLocked, setChargeLocked] = useState(false);
   const { setCurrentTenant, setCurrentUser } = useTenant();
   const navigate = useNavigate();
   const superAdminUnlocked = superAdminCode === 'EV-SUPER-2026';
   const isSuperAdmin = role === 'super_admin';
+  const users = useMemo(() => loadUsers(), []);
+  const matchingUser = users.find(
+    (user) => user.email.toLowerCase() === email.toLowerCase()
+  );
 
   const handleLogin = (e: FormEvent) => {
     e.preventDefault();
@@ -36,15 +43,21 @@ export default function Login() {
     }
     setCodeError('');
     if (email && password) {
+      if (matchingUser && matchingUser.role !== 'super_admin') {
+        const tenant = tenants[matchingUser.tenantId];
+        setCurrentTenant(tenant);
+        setCurrentUser({ ...matchingUser, email });
+        navigate('/dashboard');
+        return;
+      }
       setStep('company');
     }
   };
 
-  const handleCompanySelect = (tenantId: 'sonelgaz' | 'saeig') => {
-    const matchingUser = mockUsers.find(
-      (user) => user.email.toLowerCase() === email.toLowerCase()
-    );
-    const tenant = tenants[matchingUser?.tenantId || tenantId];
+  const handleCompanySelect = (tenantId: TenantId) => {
+    const resolvedTenantId: TenantId =
+      isSuperAdmin ? tenantId : matchingUser?.tenantId ?? tenantId;
+    const tenant = tenants[resolvedTenantId];
     setCurrentTenant(tenant);
 
     // Mock user creation
@@ -52,17 +65,34 @@ export default function Login() {
       ? {
           ...matchingUser,
           email,
+          tenantId: resolvedTenantId,
         }
       : {
           id: '1',
           email,
           name: email.split('@')[0],
           role,
-          tenantId,
+          tenantId: resolvedTenantId,
         };
     setCurrentUser(user);
 
     navigate('/dashboard');
+  };
+
+  const handleChargeStart = () => {
+    if (!chargeLocked) {
+      setIsCharging(true);
+    }
+  };
+
+  const handleChargeEnd = () => {
+    setIsCharging(false);
+    setChargeLocked(false);
+  };
+
+  const handleChargeClick = () => {
+    setIsCharging(false);
+    setChargeLocked(true);
   };
 
   if (step === 'company') {
@@ -186,8 +216,13 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-4">
-      <Card className="w-full max-w-md">
+    <div className="relative min-h-screen flex items-center justify-center p-4">
+      <div
+        className="absolute inset-0 bg-cover bg-center"
+        style={{ backgroundImage: `url(${loginBg})` }}
+      />
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-950/85 via-slate-900/80 to-slate-900/85" />
+      <Card className="relative z-10 w-full max-w-md bg-white/85 backdrop-blur-xl border border-white/40 shadow-[0_24px_70px_rgba(15,23,42,0.55)]">
         <CardHeader className="space-y-1">
           <div className="flex items-center justify-center gap-3 mb-4">
             <div className="text-4xl">EV</div>
@@ -270,8 +305,48 @@ export default function Login() {
                 </p>
               )}
             </div>
-            <Button type="submit" className="w-full">
-              Sign In
+            <Button
+              type="submit"
+              className={`relative w-full overflow-hidden transition-colors ${
+                isCharging
+                  ? 'bg-yellow-400 text-slate-900 hover:bg-yellow-400 hover:text-slate-900 shadow-[0_0_24px_rgba(56,189,248,0.45)]'
+                  : ''
+              }`}
+              onMouseEnter={handleChargeStart}
+              onMouseLeave={handleChargeEnd}
+              onFocus={handleChargeStart}
+              onBlur={handleChargeEnd}
+              onClick={handleChargeClick}
+            >
+              <span className="relative z-10">Sign In</span>
+              <span className="pointer-events-none absolute inset-0">
+                <svg
+                  viewBox="0 0 100 40"
+                  preserveAspectRatio="none"
+                  className={`lightning-ring ${isCharging ? 'is-charging' : ''}`}
+                >
+                  <rect
+                    className="lightning-glow"
+                    x="2"
+                    y="2"
+                    width="96"
+                    height="36"
+                    rx="10"
+                    ry="10"
+                    pathLength="1"
+                  />
+                  <rect
+                    className="lightning-core"
+                    x="2"
+                    y="2"
+                    width="96"
+                    height="36"
+                    rx="10"
+                    ry="10"
+                    pathLength="1"
+                  />
+                </svg>
+              </span>
             </Button>
           </form>
 

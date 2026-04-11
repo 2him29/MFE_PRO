@@ -226,7 +226,7 @@ export const mockStations: Station[] = [
     address: 'Route Nationale 1, Djelfa',
     connectorType: 'CCS2',
     power: 240,
-    status: 'available',
+    status: 'maintenance',
     tenantId: 'saeig',
     latitude: 34.6704,
     longitude: 3.2631,

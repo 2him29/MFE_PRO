@@ -24,7 +24,7 @@ Select a company to proceed to the dashboard.
 
 ## Navigation
 
-The application has 5 main sections accessible from the left sidebar:
+The application has role-based sections accessible from the left sidebar:
 
 ### 📊 Dashboard
 **Purpose**: Real-time operational overview
@@ -53,7 +53,7 @@ The application has 5 main sections accessible from the left sidebar:
   - Connector information
   - Power rating and tariff
   - Quick action menu
-- **Map View**: Geographic visualization (placeholder)
+- **Map View**: Interactive geographic visualization with station markers
 - **Filters**: Status, City, Search
 - **Actions**: Enable/Disable, Maintenance Mode, Edit Tariff
 
@@ -292,10 +292,10 @@ For technical issues or feature requests, contact your system administrator or r
 ## Demo Notes
 
 This is an MVP with mock data:
-- All actions show notifications but don't persist
+- Most operational actions show notifications but don't persist yet
 - Login accepts any credentials
-- Map view is a placeholder
-- Data resets on page refresh
+- Stations map is fully interactive (Leaflet + OpenStreetMap)
+- User accounts and active session context persist in browser localStorage
 - All dates and times are simulated
 
 For production deployment, integrate with:
