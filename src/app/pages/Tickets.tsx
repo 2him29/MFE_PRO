@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Plus, Calendar, User } from 'lucide-react';
 import { useTenant } from '../contexts/TenantContext';
 import { FilterBar } from '../components/dashboard/FilterBar';
@@ -26,10 +26,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../components/ui/select';
-import { mockTickets, mockUsers } from '../data/mockData';
+import { mockTickets } from '../data/mockData';
 import { Ticket, TicketActivity, TicketCategory, TicketStatus } from '../types';
 import { format, formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
+import { loadUsers } from '../data/userStore';
 
 const mockTicketActivities: TicketActivity[] = [
   {
@@ -73,6 +74,7 @@ const categoryLabels: Record<string, string> = {
 
 export default function Tickets() {
   const { currentTenant } = useTenant();
+  const users = useMemo(() => loadUsers(), []);
   const [searchValue, setSearchValue] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
@@ -141,8 +143,9 @@ export default function Tickets() {
     return 'text-green-600';
   };
 
-  const assignableUsers = mockUsers.filter((user) => {
+  const assignableUsers = users.filter((user) => {
     if (currentTenant && user.tenantId !== currentTenant.id) return false;
+    if (user.status === 'suspended') return false;
     return user.role !== 'super_admin';
   });
 

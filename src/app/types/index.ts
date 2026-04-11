@@ -12,6 +12,27 @@ export interface Tenant {
 
 export type UserRole = 'super_admin' | 'tenant_admin' | 'technician';
 export type UserStatus = 'active' | 'suspended';
+export type UserPrivilege =
+  | 'users_view'
+  | 'users_manage'
+  | 'stations_view'
+  | 'stations_manage'
+  | 'sessions_view'
+  | 'sessions_control'
+  | 'tickets_view'
+  | 'tickets_manage'
+  | 'billing_view'
+  | 'billing_manage'
+  | 'reports_view'
+  | 'reports_export'
+  | 'settings_manage';
+
+export type UserPrivilegeTemplate =
+  | 'standard_admin'
+  | 'operations_admin'
+  | 'finance_admin'
+  | 'custom'
+  | 'technician_default';
 
 export interface User {
   id: string;
@@ -20,10 +41,17 @@ export interface User {
   role: UserRole;
   tenantId: TenantId;
   status?: UserStatus;
+  privileges?: UserPrivilege[];
+  privilegeTemplate?: UserPrivilegeTemplate;
 }
 
 // Station Types
-export type StationStatus = 'available' | 'charging' | 'offline' | 'fault';
+export type StationStatus =
+  | 'available'
+  | 'charging'
+  | 'offline'
+  | 'fault'
+  | 'maintenance';
 export type ConnectorType = 'CCS2' | 'CHAdeMO' | 'Type 2';
 
 export interface Station {

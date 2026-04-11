@@ -9,7 +9,7 @@ A professional, production-ready admin platform for managing EV charging operati
 ## Features
 
 - Multi-tenant support: Sonelgaz (green) and SAEIG (blue) with distinct branding
-- 6 core modules: Dashboard, Stations, Sessions, Tickets, Billing
+- 7 core modules: Dashboard, Stations, Sessions, Tickets, Billing, Users, My Tasks
 - Real-time monitoring: Live KPIs, charts, and alert panels
 - Advanced filtering: Search and filter across all data tables
 - Action confirmations: Safety checks for destructive operations
@@ -43,7 +43,7 @@ src/app/
 │   └── ui/             # Base Radix UI components
 ├── contexts/           # TenantContext for multi-tenant state
 ├── data/               # Mock data for demo
-├── pages/              # 6 main routes + Login + NotFound
+├── pages/              # 7 protected routes + Login + NotFound
 ├── types/              # TypeScript definitions
 ├── routes.ts           # React Router configuration
 └── App.tsx             # Root component
@@ -113,18 +113,19 @@ This v1 includes:
 
 - French/Arabic i18n
 - Real-time WebSocket updates
-- Interactive map integration
+- Advanced map layers and geofencing tools
 - Backend API integration
 - Mobile companion app
 - Advanced analytics
 - Custom report builder
-- User management CRUD
+- Backend-synced user lifecycle and audit controls
 
 ## Notes
 
 - Demo mode: Login accepts any credentials
-- Mock data: All actions show notifications but do not persist
-- Map view: Placeholder for future integration
+- Demo mode: Most operational actions show notifications and do not persist yet
+- User management: User CRUD persists in browser localStorage
+- Stations map: Interactive Leaflet map with station markers and popups
 - Currency: DZD (Algerian Dinar)
 - Power units: kW (kilowatts)
 
