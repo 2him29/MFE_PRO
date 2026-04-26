@@ -1,4 +1,6 @@
 import { NavLink } from 'react-router-dom';
+import type { ComponentType } from 'react';
+import { motion } from 'motion/react';
 import {
   LayoutDashboard,
   Zap,
@@ -9,79 +11,58 @@ import {
   ClipboardCheck,
 } from 'lucide-react';
 import { useTenant } from '../../contexts/TenantContext';
+import { Sheet, SheetContent } from '../ui/sheet';
+import { protectedRoutes, type ProtectedRouteId } from '../../config/navigation';
 
-const menuItems = [
+const routeIcons: Record<ProtectedRouteId, ComponentType<{ className?: string }>> =
   {
-    path: '/dashboard',
-    icon: LayoutDashboard,
-    label: 'Dashboard',
-    roles: ['super_admin', 'tenant_admin', 'technician'],
-  },
-  {
-    path: '/stations',
-    icon: Zap,
-    label: 'Stations',
-    roles: ['super_admin', 'tenant_admin'],
-  },
-  {
-    path: '/sessions',
-    icon: Activity,
-    label: 'Sessions',
-    roles: ['super_admin', 'tenant_admin'],
-  },
-  {
-    path: '/tickets',
-    icon: AlertCircle,
-    label: 'Tasks & Incidents',
-    roles: ['super_admin', 'tenant_admin'],
-  },
-  {
-    path: '/my-tasks',
-    icon: ClipboardCheck,
-    label: 'My Tasks',
-    roles: ['technician'],
-  },
-  {
-    path: '/billing',
-    icon: FileText,
-    label: 'Billing',
-    roles: ['super_admin', 'tenant_admin'],
-  },
-  {
-    path: '/users',
-    icon: Users,
-    label: 'User Management',
-    roles: ['super_admin'],
-  },
-];
+    dashboard: LayoutDashboard,
+    stations: Zap,
+    sessions: Activity,
+    tickets: AlertCircle,
+    myTasks: ClipboardCheck,
+    billing: FileText,
+    users: Users,
+  };
 
-export function Sidebar() {
+interface SidebarProps {
+  mobileOpen: boolean;
+  onMobileOpenChange: (open: boolean) => void;
+}
+
+export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps) {
   const { currentTenant, currentUser } = useTenant();
 
   const tenantGradient = currentTenant?.id === 'sonelgaz'
-    ? 'from-green-600 to-green-700'
+    ? 'from-orange-500 to-orange-600'
     : 'from-blue-600 to-blue-700';
 
-  const visibleMenuItems = menuItems.filter((item) =>
-    item.roles.includes(currentUser?.role || 'technician')
+  const visibleMenuItems = protectedRoutes.filter(
+    (route) =>
+      route.showInSidebar &&
+      currentUser &&
+      route.roles.includes(currentUser.role)
   );
 
-  return (
-    <aside className="fixed left-0 top-0 h-screen w-64 bg-gray-900 text-white flex flex-col shadow-2xl">
+  const tenantLogoImageClass = currentTenant?.id === 'sonelgaz'
+    ? 'scale-[1.85] object-[50%_52%]'
+    : 'scale-[1.15] object-center';
+
+  const sidebarContent = (
+    <div className="h-full w-full flex flex-col">
       {/* Logo with Gradient Background */}
       <div
-        className={`p-6 border-b border-gray-800 bg-gradient-to-br ${tenantGradient}`}
+        className={`border-b border-blue-900/40 bg-gradient-to-br px-5 py-4 ${tenantGradient}`}
       >
         <div className="flex items-center gap-3">
           {currentTenant?.logoImage ? (
             <div
-              className="p-3 rounded-xl bg-white shadow-lg flex items-center justify-center transform transition-transform hover:scale-105"
-              style={{ width: '64px', height: '64px' }}
+              className="h-14 w-14 overflow-hidden rounded-xl border border-blue-100/70 bg-white/95 shadow-lg transition-transform hover:scale-105"
             >
               <img
                 src={currentTenant.logoImage}
                 alt={`${currentTenant.name} Logo`}
-                className="w-full h-full object-contain"
+                className={`h-full w-full object-cover ${tenantLogoImageClass}`}
               />
             </div>
           ) : (
@@ -106,30 +87,46 @@ export function Sidebar() {
       {/* Navigation */}
       <nav className="flex-1 p-4">
         <ul className="space-y-2">
-          {visibleMenuItems.map((item) => (
-            <li key={item.path}>
-              <NavLink
-                to={item.path}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 px-4 py-3 rounded-lg transition-colors relative ${
-                    isActive
-                      ? 'bg-gray-800 text-white'
-                      : 'text-gray-300 hover:bg-gray-800 hover:text-white'
-                  }`
-                }
-                style={({ isActive }) =>
-                  isActive && currentTenant
-                    ? {
-                        borderLeft: `3px solid ${currentTenant.accentColor}`,
-                      }
-                    : {}
-                }
-              >
-                <item.icon className="h-5 w-5" />
-                <span>{item.label}</span>
-              </NavLink>
-            </li>
-          ))}
+          {visibleMenuItems.map((item) => {
+            const Icon = routeIcons[item.id];
+            return (
+              <li key={item.id}>
+                <NavLink
+                  to={item.path}
+                  onClick={() => onMobileOpenChange(false)}
+                  className={({ isActive }) =>
+                    `relative flex items-center gap-3 px-4 py-3 rounded-lg transition-colors duration-150 ${
+                      isActive
+                        ? 'text-white'
+                        : 'text-gray-400 hover:bg-gray-800/60 hover:text-white'
+                    }`
+                  }
+                >
+                  {({ isActive }) => (
+                    <>
+                      {isActive && (
+                        <>
+                          <motion.span
+                            layoutId="sidebar-bg"
+                            className="absolute inset-0 rounded-lg bg-gray-800"
+                            transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+                          />
+                          <motion.span
+                            layoutId="sidebar-accent"
+                            className="absolute left-0 top-2 bottom-2 w-[3px] rounded-r-full"
+                            style={{ backgroundColor: currentTenant?.accentColor ?? '#6b7280' }}
+                            transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+                          />
+                        </>
+                      )}
+                      <Icon className="relative z-10 h-5 w-5" />
+                      <span className="relative z-10">{item.label}</span>
+                    </>
+                  )}
+                </NavLink>
+              </li>
+            );
+          })}
         </ul>
       </nav>
 
@@ -137,7 +134,24 @@ export function Sidebar() {
       <div className="p-4 border-t border-gray-800">
         <p className="text-xs text-gray-500 text-center">v1.0.0 MVP</p>
       </div>
-    </aside>
+    </div>
+  );
+
+  return (
+    <>
+      <aside className="fixed left-0 top-0 z-30 hidden h-screen w-64 bg-gray-900 text-white shadow-2xl md:flex">
+        {sidebarContent}
+      </aside>
+
+      <Sheet open={mobileOpen} onOpenChange={onMobileOpenChange}>
+        <SheetContent
+          side="left"
+          className="!w-screen !max-w-none sm:!max-w-none !border-r-0 bg-gray-900 p-0 text-white [&>button]:text-white"
+        >
+          {sidebarContent}
+        </SheetContent>
+      </Sheet>
+    </>
   );
 }
 

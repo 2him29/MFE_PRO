@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent } from 'react';
+import React, { useMemo, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTenant, tenants } from '../contexts/TenantContext';
 import { Button } from '../components/ui/button';
@@ -23,8 +23,8 @@ export default function Login() {
   const [role, setRole] = useState<UserRole>('tenant_admin');
   const [superAdminCode, setSuperAdminCode] = useState('');
   const [codeError, setCodeError] = useState('');
-  const [isCharging, setIsCharging] = useState(false);
-  const [chargeLocked, setChargeLocked] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const [mousePos, setMousePos] = useState({ x: 50, y: 50 });
   const { setCurrentTenant, setCurrentUser } = useTenant();
   const navigate = useNavigate();
   const superAdminUnlocked = superAdminCode === 'EV-SUPER-2026';
@@ -79,20 +79,12 @@ export default function Login() {
     navigate('/dashboard');
   };
 
-  const handleChargeStart = () => {
-    if (!chargeLocked) {
-      setIsCharging(true);
-    }
-  };
-
-  const handleChargeEnd = () => {
-    setIsCharging(false);
-    setChargeLocked(false);
-  };
-
-  const handleChargeClick = () => {
-    setIsCharging(false);
-    setChargeLocked(true);
+  const handleMouseMove = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setMousePos({
+      x: ((e.clientX - rect.left) / rect.width) * 100,
+      y: ((e.clientY - rect.top) / rect.height) * 100,
+    });
   };
 
   if (step === 'company') {
@@ -305,49 +297,24 @@ export default function Login() {
                 </p>
               )}
             </div>
-            <Button
-              type="submit"
-              className={`relative w-full overflow-hidden transition-colors ${
-                isCharging
-                  ? 'bg-yellow-400 text-slate-900 hover:bg-yellow-400 hover:text-slate-900 shadow-[0_0_24px_rgba(56,189,248,0.45)]'
-                  : ''
-              }`}
-              onMouseEnter={handleChargeStart}
-              onMouseLeave={handleChargeEnd}
-              onFocus={handleChargeStart}
-              onBlur={handleChargeEnd}
-              onClick={handleChargeClick}
-            >
-              <span className="relative z-10">Sign In</span>
-              <span className="pointer-events-none absolute inset-0">
-                <svg
-                  viewBox="0 0 100 40"
-                  preserveAspectRatio="none"
-                  className={`lightning-ring ${isCharging ? 'is-charging' : ''}`}
-                >
-                  <rect
-                    className="lightning-glow"
-                    x="2"
-                    y="2"
-                    width="96"
-                    height="36"
-                    rx="10"
-                    ry="10"
-                    pathLength="1"
-                  />
-                  <rect
-                    className="lightning-core"
-                    x="2"
-                    y="2"
-                    width="96"
-                    height="36"
-                    rx="10"
-                    ry="10"
-                    pathLength="1"
-                  />
-                </svg>
-              </span>
-            </Button>
+            <div className={`btn-electric-wrap w-full${isHovered ? ' is-hovered' : ''}`}>
+              <Button
+                type="submit"
+                className="btn-electric relative w-full overflow-hidden"
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
+                onMouseMove={handleMouseMove}
+              >
+                <span
+                  className="pointer-events-none absolute inset-0 transition-opacity duration-300"
+                  style={{
+                    opacity: isHovered ? 1 : 0,
+                    background: `radial-gradient(circle at ${mousePos.x}% ${mousePos.y}%, rgba(56,189,248,0.45) 0%, rgba(129,140,248,0.2) 45%, transparent 70%)`,
+                  }}
+                />
+                <span className="relative z-10">Sign In</span>
+              </Button>
+            </div>
           </form>
 
           <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">

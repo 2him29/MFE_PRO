@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MapPin, Settings, Power, Wrench, Edit3, Download } from 'lucide-react';
 import { useTenant } from '../contexts/TenantContext';
 import { FilterBar } from '../components/dashboard/FilterBar';
@@ -23,15 +23,22 @@ import {
   DropdownMenuTrigger,
 } from '../components/ui/dropdown-menu';
 import { Card, CardContent } from '../components/ui/card';
+import { TableSkeleton } from '../components/dashboard/LoadingState';
 import { mockStations } from '../data/mockData';
 import { Station } from '../types';
 import { toast } from 'sonner';
 
 export default function Stations() {
   const { currentTenant } = useTenant();
+  const [loading, setLoading] = useState(true);
   const [searchValue, setSearchValue] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [cityFilter, setCityFilter] = useState('all');
+
+  useEffect(() => {
+    const t = setTimeout(() => setLoading(false), 1300);
+    return () => clearTimeout(t);
+  }, []);
   const [confirmModal, setConfirmModal] = useState<{
     open: boolean;
     action: string;
@@ -130,7 +137,9 @@ export default function Stations() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredStations.length === 0 ? (
+                  {loading ? (
+                    <TableSkeleton cols={8} />
+                  ) : filteredStations.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={8} className="text-center py-8 text-gray-500">
                         No stations found
@@ -138,7 +147,7 @@ export default function Stations() {
                     </TableRow>
                   ) : (
                     filteredStations.map((station) => (
-                      <TableRow key={station.id}>
+                      <TableRow key={station.id} className="hover:bg-muted/50 transition-colors">
                         <TableCell>
                           <div>
                             <p className="font-medium">{station.name}</p>

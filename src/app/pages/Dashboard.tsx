@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import {
   Activity,
@@ -20,6 +20,7 @@ import {
 import { mockKPIData, mockAlerts } from "../data/mockData";
 import { useTenant } from "../contexts/TenantContext";
 import { KPICard } from "../components/dashboard/KPICard";
+import { KPICardSkeleton, ChartSkeleton } from "../components/dashboard/LoadingState";
 import { AnimatedCard } from "../components/dashboard/AnimatedCard";
 import { ConnectorTypeChart } from "../components/dashboard/ConnectorTypeChart";
 import { RevenueTrendChart } from "../components/dashboard/RevenueTrendChart";
@@ -43,7 +44,13 @@ export default function Dashboard() {
   const accentColor = currentTenant?.accentColor ?? "#2563eb";
 
   const [dateFilter, setDateFilter] = useState<DateFilter>("today");
+  const [loading, setLoading] = useState(true);
   const kpiData = mockKPIData[dateFilter];
+
+  useEffect(() => {
+    const t = setTimeout(() => setLoading(false), 1500);
+    return () => clearTimeout(t);
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -70,50 +77,51 @@ export default function Dashboard() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-        <KPICard
-          title="Active Stations"
-          value={kpiData.activeStations}
-          trend={kpiData.activeStationsTrend}
-          icon={<Zap className="h-6 w-6" />}
-          accentColor={accentColor}
-        />
-
-        <KPICard
-          title="Active Sessions"
-          value={kpiData.activeSessions}
-          trend={kpiData.activeSessionsTrend}
-          icon={<Activity className="h-6 w-6" />}
-          accentColor={accentColor}
-        />
-
-        <KPICard
-          title="Energy (kWh)"
-          value={kpiData.totalEnergy.toLocaleString()}
-          trend={kpiData.totalEnergyTrend}
-          icon={<Battery className="h-6 w-6" />}
-          accentColor={accentColor}
-        />
-
-        <KPICard
-          title="Revenue (DZD)"
-          value={`${(kpiData.totalRevenue / 1000).toFixed(1)}K`}
-          trend={kpiData.totalRevenueTrend}
-          icon={<DollarSign className="h-6 w-6" />}
-          accentColor={accentColor}
-        />
-
-        <KPICard
-          title="Faults"
-          value={kpiData.faults}
-          trend={kpiData.faultsTrend}
-          icon={<AlertTriangle className="h-6 w-6" />}
-          accentColor="#dc2626"
-        />
+        {loading ? (
+          Array.from({ length: 5 }).map((_, i) => <KPICardSkeleton key={i} />)
+        ) : (
+          <>
+            <KPICard
+              title="Active Stations"
+              value={kpiData.activeStations}
+              trend={kpiData.activeStationsTrend}
+              icon={<Zap className="h-6 w-6" />}
+              accentColor={accentColor}
+            />
+            <KPICard
+              title="Active Sessions"
+              value={kpiData.activeSessions}
+              trend={kpiData.activeSessionsTrend}
+              icon={<Activity className="h-6 w-6" />}
+              accentColor={accentColor}
+            />
+            <KPICard
+              title="Energy (kWh)"
+              value={kpiData.totalEnergy.toLocaleString()}
+              trend={kpiData.totalEnergyTrend}
+              icon={<Battery className="h-6 w-6" />}
+              accentColor={accentColor}
+            />
+            <KPICard
+              title="Revenue (DZD)"
+              value={`${(kpiData.totalRevenue / 1000).toFixed(1)}K`}
+              trend={kpiData.totalRevenueTrend}
+              icon={<DollarSign className="h-6 w-6" />}
+              accentColor={accentColor}
+            />
+            <KPICard
+              title="Faults"
+              value={kpiData.faults}
+              trend={kpiData.faultsTrend}
+              icon={<AlertTriangle className="h-6 w-6" />}
+              accentColor="#dc2626"
+            />
+          </>
+        )}
       </div>
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Revenue & Energy Trend */}
         <AnimatedCard className="lg:col-span-2" delay={0.1}>
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
@@ -121,24 +129,29 @@ export default function Dashboard() {
               Revenue & Energy Trends (30 Days)
             </CardTitle>
           </CardHeader>
-
           <CardContent className="pt-4">
-            <div style={{ height: "300px" }}>
-              <RevenueTrendChart />
-            </div>
+            {loading ? (
+              <ChartSkeleton height={300} />
+            ) : (
+              <div style={{ height: "300px" }}>
+                <RevenueTrendChart />
+              </div>
+            )}
           </CardContent>
         </AnimatedCard>
 
-        {/* Connector Distribution */}
         <AnimatedCard delay={0.2}>
           <CardHeader className="pb-3">
             <CardTitle className="text-base">Connector Distribution</CardTitle>
           </CardHeader>
-
           <CardContent className="pt-4">
-            <div style={{ height: "300px" }}>
-              <ConnectorTypeChart />
-            </div>
+            {loading ? (
+              <ChartSkeleton height={300} />
+            ) : (
+              <div style={{ height: "300px" }}>
+                <ConnectorTypeChart />
+              </div>
+            )}
           </CardContent>
         </AnimatedCard>
       </div>
@@ -150,18 +163,24 @@ export default function Dashboard() {
         </CardHeader>
 
         <CardContent>
+          {loading ? (
+            <ChartSkeleton height={250} />
+          ) : (
           <ResponsiveContainer width="100%" height={250}>
             <LineChart data={energyTrendData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis dataKey="time" stroke="#6b7280" fontSize={12} />
-              <YAxis stroke="#6b7280" fontSize={12} />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+              <XAxis dataKey="time" stroke="var(--muted-foreground)" fontSize={12} />
+              <YAxis stroke="var(--muted-foreground)" fontSize={12} />
 
               <Tooltip
                 contentStyle={{
-                  backgroundColor: "white",
-                  border: "1px solid #e5e7eb",
+                  backgroundColor: "var(--popover)",
+                  border: "1px solid var(--border)",
                   borderRadius: "8px",
+                  boxShadow: "0 10px 20px rgba(0,0,0,0.2)",
                 }}
+                labelStyle={{ color: "var(--popover-foreground)" }}
+                itemStyle={{ color: "var(--popover-foreground)" }}
               />
 
               <Line
@@ -176,6 +195,7 @@ export default function Dashboard() {
               />
             </LineChart>
           </ResponsiveContainer>
+          )}
         </CardContent>
       </AnimatedCard>
 
@@ -194,7 +214,7 @@ export default function Dashboard() {
               {mockAlerts.slice(0, 5).map((alert) => (
                 <div
                   key={alert.id}
-                  className="flex items-start gap-3 p-3 border rounded-lg hover:bg-gray-50 transition-colors"
+                  className="flex items-start gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors"
                 >
                   <StatusChip status={alert.severity} type="alert" />
 

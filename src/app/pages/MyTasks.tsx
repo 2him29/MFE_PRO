@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Calendar, ClipboardCheck } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { Calendar, ClipboardCheck, MapPin } from 'lucide-react';
 import { useTenant } from '../contexts/TenantContext';
 import { FilterBar } from '../components/dashboard/FilterBar';
 import { StatusChip } from '../components/dashboard/StatusChip';
@@ -23,13 +23,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../components/ui/select';
-import { mockTickets } from '../data/mockData';
+import { mockStations } from '../data/mockData';
 import { Ticket, TicketStatus } from '../types';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
+import { loadTickets, saveTickets } from '../data/ticketStore';
 
 export default function MyTasks() {
   const { currentTenant, currentUser } = useTenant();
+  const [tickets, setTickets] = useState<Ticket[]>(() => loadTickets());
   const [searchValue, setSearchValue] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [actionDrawer, setActionDrawer] = useState<{
@@ -39,10 +41,21 @@ export default function MyTasks() {
   }>({ open: false, mode: 'status', ticket: null });
   const [statusUpdate, setStatusUpdate] = useState<TicketStatus>('open');
   const [note, setNote] = useState('');
+  const stationByName = useMemo(
+    () => new Map(mockStations.map((station) => [station.name, station])),
+    []
+  );
+  const isMobile = useMemo(() => {
+    if (typeof navigator === 'undefined') return false;
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      navigator.userAgent
+    );
+  }, []);
 
-  const filteredTickets = mockTickets.filter((ticket) => {
+  const filteredTickets = tickets.filter((ticket) => {
     if (!currentUser) return false;
     if (currentTenant && ticket.tenantId !== currentTenant.id) return false;
+    if (currentUser && ticket.tenantId !== currentUser.tenantId) return false;
     if (ticket.assignedToId && currentUser && ticket.assignedToId !== currentUser.id) {
       return false;
     }
@@ -67,6 +80,25 @@ export default function MyTasks() {
     return 'text-green-600';
   };
 
+  const getGoogleMapsUrl = (stationName: string) => {
+    const station = stationByName.get(stationName);
+    if (station) {
+      const { latitude, longitude, address, city } = station;
+      if (typeof latitude === 'number' && typeof longitude === 'number') {
+        return `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`;
+      }
+      if (address || city) {
+        const fallbackAddress = [address, city].filter(Boolean).join(', ');
+        return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+          fallbackAddress
+        )}`;
+      }
+    }
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+      stationName
+    )}`;
+  };
+
   const handleOpenStatus = (ticket: Ticket) => {
     setStatusUpdate(ticket.status);
     setNote('');
@@ -76,6 +108,11 @@ export default function MyTasks() {
   const handleOpenReport = (ticket: Ticket) => {
     setNote('');
     setActionDrawer({ open: true, mode: 'report', ticket });
+  };
+
+  const persistTickets = (nextTickets: Ticket[]) => {
+    setTickets(nextTickets);
+    saveTickets(nextTickets);
   };
 
   return (
@@ -134,7 +171,7 @@ export default function MyTasks() {
                 </TableRow>
               ) : (
                 filteredTickets.map((ticket) => (
-                  <TableRow key={ticket.id} className="hover:bg-gray-50">
+                  <TableRow key={ticket.id} className="hover:bg-muted/40">
                     <TableCell>
                       <span className="font-mono text-sm">{ticket.id}</span>
                     </TableCell>
@@ -160,6 +197,21 @@ export default function MyTasks() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          asChild
+                        >
+                          <a
+                            href={getGoogleMapsUrl(ticket.stationName)}
+                            {...(isMobile
+                              ? {}
+                              : { target: '_blank', rel: 'noreferrer' })}
+                          >
+                            <MapPin className="h-4 w-4" />
+                            Navigate
+                          </a>
+                        </Button>
                         <Button
                           variant="outline"
                           size="sm"
@@ -194,6 +246,17 @@ export default function MyTasks() {
             className="space-y-4"
             onSubmit={(event) => {
               event.preventDefault();
+              const now = new Date();
+              const nextTickets = tickets.map((ticket) =>
+                ticket.id === actionDrawer.ticket?.id
+                  ? {
+                      ...ticket,
+                      status: statusUpdate,
+                      updatedAt: now,
+                    }
+                  : ticket
+              );
+              persistTickets(nextTickets);
               toast.success(`Status updated for ${actionDrawer.ticket?.id}`);
               setActionDrawer((prev) => ({ ...prev, open: false }));
             }}
@@ -243,6 +306,16 @@ export default function MyTasks() {
             className="space-y-4"
             onSubmit={(event) => {
               event.preventDefault();
+              const now = new Date();
+              const nextTickets = tickets.map((ticket) =>
+                ticket.id === actionDrawer.ticket?.id
+                  ? {
+                      ...ticket,
+                      updatedAt: now,
+                    }
+                  : ticket
+              );
+              persistTickets(nextTickets);
               toast.success(`Report submitted for ${actionDrawer.ticket?.id}`);
               setActionDrawer((prev) => ({ ...prev, open: false }));
             }}

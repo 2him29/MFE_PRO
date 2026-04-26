@@ -35,7 +35,7 @@ export function FilterBar({
   actions,
 }: FilterBarProps) {
   return (
-    <div className="flex flex-wrap items-center gap-4 p-4 bg-white border-b sticky top-0 z-10">
+    <div className="sticky top-0 z-10 flex flex-wrap items-center gap-4 border-b border-border/70 bg-background/95 p-4 backdrop-blur supports-[backdrop-filter]:bg-background/80">
       <div className="flex-1 min-w-[300px]">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />

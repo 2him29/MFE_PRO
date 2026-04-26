@@ -1,0 +1,33 @@
+@startuml
+title EV Charge DZ - Sequence Diagram (Current App Flow: Create and Assign Ticket)
+
+actor "Tenant Admin / Super Admin" as Admin
+boundary "Web UI\n(Tickets.tsx)" as UI
+control "TenantContext" as TenantCtx
+control "UserStore\n(loadUsers)" as UserStore
+control "TicketStore\n(loadTickets/saveTickets)" as TicketStore
+database "LocalStorage" as LS
+
+Admin -> UI: Open "Create Ticket" drawer
+UI -> TenantCtx: get currentUser + currentTenant
+TenantCtx --> UI: user + tenant
+
+UI -> UserStore: loadUsers()
+UserStore -> LS: GET evcharge.users
+LS --> UserStore: users JSON (or defaults)
+UserStore --> UI: users[]
+UI -> UI: Filter assignable users by tenant/status/role
+
+Admin -> UI: Submit form(title, station,\ncategory, priority, assignee, description)
+UI -> UI: Validate fields
+UI -> UI: Compute slaDeadline from priority
+UI -> UI: Build new ticket payload\n(createdById, assignedToId, timestamps)
+
+UI -> TicketStore: saveTickets(nextTickets)
+TicketStore -> LS: SET evcharge.tickets
+LS --> TicketStore: ok
+TicketStore --> UI: persisted
+
+UI -> Admin: Show success toast\n"Task created and assigned"
+
+@enduml
