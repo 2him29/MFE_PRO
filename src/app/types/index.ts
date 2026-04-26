@@ -176,3 +176,35 @@ export interface Alert {
   timestamp: Date;
   stationName?: string;
 }
+
+// Notification Types
+export type NotificationCategory =
+  | 'station_offline'
+  | 'charger_fault'
+  | 'session_failed'
+  | 'payment_failed'
+  | 'sla_breach'
+  | 'ticket_escalated'
+  | 'system_update';
+
+export type NotificationRoute =
+  | '/dashboard'
+  | '/stations'
+  | '/sessions'
+  | '/tickets'
+  | '/billing'
+  | '/my-tasks';
+
+export interface AppNotification {
+  id: string;
+  title: string;
+  message: string;
+  severity: AlertSeverity;
+  category: NotificationCategory;
+  createdAt: Date;
+  tenantId: TenantId;
+  route: NotificationRoute;
+  entityId?: string;
+  targetRoles?: UserRole[];
+  readBy: string[];
+}

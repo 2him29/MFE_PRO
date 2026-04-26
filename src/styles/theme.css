@@ -140,6 +140,7 @@
 
   body {
     @apply bg-background text-foreground;
+    transition: background-color 0.3s ease, color 0.2s ease;
   }
 
   /**
@@ -192,4 +193,83 @@
     font-weight: var(--font-weight-normal);
     line-height: 1.5;
   }
+}
+
+@property --plasma-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes plasma-rotate {
+  to { --plasma-angle: 360deg; }
+}
+
+.btn-electric-wrap {
+  position: relative;
+  border-radius: 0.625rem;
+}
+
+.btn-electric-wrap::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: calc(0.625rem + 2px);
+  background: conic-gradient(
+    from var(--plasma-angle),
+    transparent 0deg,
+    #38bdf8 60deg,
+    #818cf8 100deg,
+    #e879f9 130deg,
+    transparent 190deg,
+    #38bdf8 250deg,
+    #818cf8 290deg,
+    transparent 360deg
+  );
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  animation: plasma-rotate 2s linear infinite;
+  z-index: 0;
+}
+
+.btn-electric-wrap::after {
+  content: '';
+  position: absolute;
+  inset: -7px;
+  border-radius: calc(0.625rem + 7px);
+  background: conic-gradient(
+    from var(--plasma-angle),
+    transparent 0deg,
+    rgba(56, 189, 248, 0.5) 60deg,
+    rgba(129, 140, 248, 0.4) 100deg,
+    rgba(232, 121, 249, 0.4) 130deg,
+    transparent 190deg,
+    rgba(56, 189, 248, 0.5) 250deg,
+    rgba(129, 140, 248, 0.4) 290deg,
+    transparent 360deg
+  );
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  animation: plasma-rotate 2s linear infinite;
+  z-index: 0;
+  filter: blur(10px);
+}
+
+.btn-electric-wrap.is-hovered::before,
+.btn-electric-wrap.is-hovered::after {
+  opacity: 1;
+}
+
+.btn-electric {
+  position: relative;
+  z-index: 1;
+  transition: box-shadow 0.3s ease, transform 0.2s ease !important;
+}
+
+.btn-electric:hover {
+  box-shadow:
+    0 0 18px rgba(56, 189, 248, 0.65),
+    0 0 40px rgba(56, 189, 248, 0.3),
+    0 0 75px rgba(129, 140, 248, 0.2) !important;
+  transform: translateY(-1px);
 }

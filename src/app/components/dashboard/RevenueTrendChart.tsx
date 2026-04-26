@@ -12,6 +12,13 @@ const mockData = [
 ];
 
 export function RevenueTrendChart() {
+  const tooltipStyle = {
+    backgroundColor: 'var(--popover)',
+    border: '1px solid var(--border)',
+    borderRadius: '8px',
+    boxShadow: '0 10px 20px rgba(0,0,0,0.2)',
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -21,10 +28,10 @@ export function RevenueTrendChart() {
     >
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={mockData}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+          <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
           <XAxis
             dataKey="date"
-            stroke="#6b7280"
+            stroke="var(--muted-foreground)"
             fontSize={12}
             tickLine={false}
           />
@@ -44,12 +51,9 @@ export function RevenueTrendChart() {
             tickFormatter={(value) => `${(value / 1000).toFixed(1)}k`}
           />
           <Tooltip
-            contentStyle={{
-              backgroundColor: 'white',
-              border: '1px solid #e5e7eb',
-              borderRadius: '8px',
-              boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-            }}
+            contentStyle={tooltipStyle}
+            labelStyle={{ color: 'var(--popover-foreground)' }}
+            itemStyle={{ color: 'var(--popover-foreground)' }}
             formatter={(value: number, name: string) => {
               if (name === 'revenue') return [`${value.toLocaleString()} DZD`, 'Revenue'];
               if (name === 'energy') return [`${value.toLocaleString()} kWh`, 'Energy'];

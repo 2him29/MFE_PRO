@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Download, StopCircle, Flag } from 'lucide-react';
 import { useTenant } from '../contexts/TenantContext';
 import { FilterBar } from '../components/dashboard/FilterBar';
@@ -20,6 +20,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '../components/ui/dropdown-menu';
+import { TableSkeleton } from '../components/dashboard/LoadingState';
 import { mockSessions } from '../data/mockData';
 import { Session } from '../types';
 import { format } from 'date-fns';
@@ -27,8 +28,14 @@ import { toast } from 'sonner';
 
 export default function Sessions() {
   const { currentTenant } = useTenant();
+  const [loading, setLoading] = useState(true);
   const [searchValue, setSearchValue] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+
+  useEffect(() => {
+    const t = setTimeout(() => setLoading(false), 1300);
+    return () => clearTimeout(t);
+  }, []);
   const [confirmModal, setConfirmModal] = useState<{
     open: boolean;
     action: string;
@@ -122,7 +129,9 @@ export default function Sessions() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredSessions.length === 0 ? (
+              {loading ? (
+                <TableSkeleton cols={10} />
+              ) : filteredSessions.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={10} className="text-center py-8 text-gray-500">
                     No sessions found
@@ -130,7 +139,7 @@ export default function Sessions() {
                 </TableRow>
               ) : (
                 filteredSessions.map((session) => (
-                  <TableRow key={session.id}>
+                  <TableRow key={session.id} className="hover:bg-muted/50 transition-colors">
                     <TableCell>
                       <span className="font-mono text-sm">{session.id}</span>
                     </TableCell>
@@ -196,7 +205,7 @@ export default function Sessions() {
         </div>
 
         {/* Summary Footer */}
-        <div className="border-t p-4 bg-gray-50">
+        <div className="border-t p-4 bg-gray-50 dark:bg-gray-800/50">
           <div className="flex items-center justify-between text-sm">
             <span className="text-gray-600">
               Showing {filteredSessions.length} session(s)

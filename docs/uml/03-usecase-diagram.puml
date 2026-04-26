@@ -1,0 +1,47 @@
+@startuml
+title EV Charge DZ - Use Case Diagram
+left to right direction
+
+actor "Super Admin" as SuperAdmin
+actor "Tenant Admin" as TenantAdmin
+actor "Technician" as Technician
+
+rectangle "EV Charge DZ Admin System" {
+  usecase "Authenticate / Login" as UC_Login
+  usecase "Select Tenant Context" as UC_Tenant
+  usecase "View Dashboard\n(KPI + Alerts)" as UC_Dashboard
+
+  usecase "Manage Users\n(Create, Edit, Suspend,\nPrivileges)" as UC_Users
+  usecase "Manage Stations\n(Status, Tariff, Maintenance)" as UC_Stations
+  usecase "Monitor Sessions\n(Remote stop, anomaly flag)" as UC_Sessions
+  usecase "Manage Tickets\n(Create, assign, status)" as UC_Tickets
+  usecase "Lookup Assignable Users" as UC_Assignees
+  usecase "Update My Tasks\n(Status + Field report)" as UC_MyTasks
+  usecase "View Billing & Reports\n(Filter, reconcile, export)" as UC_Billing
+}
+
+SuperAdmin --> UC_Login
+SuperAdmin --> UC_Tenant
+SuperAdmin --> UC_Dashboard
+SuperAdmin --> UC_Users
+SuperAdmin --> UC_Stations
+SuperAdmin --> UC_Sessions
+SuperAdmin --> UC_Tickets
+SuperAdmin --> UC_Billing
+
+TenantAdmin --> UC_Login
+TenantAdmin --> UC_Tenant
+TenantAdmin --> UC_Dashboard
+TenantAdmin --> UC_Stations
+TenantAdmin --> UC_Sessions
+TenantAdmin --> UC_Tickets
+TenantAdmin --> UC_Billing
+
+Technician --> UC_Login
+Technician --> UC_Dashboard
+Technician --> UC_MyTasks
+
+UC_Tickets .> UC_Assignees : <<include>>
+UC_MyTasks .> UC_Tickets : <<extend>> status/report updates
+
+@enduml

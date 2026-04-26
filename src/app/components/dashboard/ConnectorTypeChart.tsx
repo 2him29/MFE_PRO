@@ -8,6 +8,13 @@ const mockData = [
 ];
 
 export function ConnectorTypeChart() {
+  const tooltipStyle = {
+    backgroundColor: 'var(--popover)',
+    border: '1px solid var(--border)',
+    borderRadius: '8px',
+    boxShadow: '0 10px 20px rgba(0,0,0,0.2)',
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
@@ -32,18 +39,15 @@ export function ConnectorTypeChart() {
             ))}
           </Pie>
           <Tooltip
-            contentStyle={{
-              backgroundColor: 'white',
-              border: '1px solid #e5e7eb',
-              borderRadius: '8px',
-              boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-            }}
+            contentStyle={tooltipStyle}
+            labelStyle={{ color: 'var(--popover-foreground)' }}
+            itemStyle={{ color: 'var(--popover-foreground)' }}
             formatter={(value: number) => [`${value}%`, 'Distribution']}
           />
           <Legend
             verticalAlign="bottom"
             height={36}
-            formatter={(value) => value}
+            formatter={(value) => <span style={{ color: 'var(--foreground)' }}>{value}</span>}
           />
         </PieChart>
       </ResponsiveContainer>

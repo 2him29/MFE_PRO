@@ -1,0 +1,227 @@
+@startuml
+title EV Charge DZ - Domain Class Diagram (DB-Oriented)
+
+hide circle
+skinparam classAttributeIconSize 0
+
+enum UserRole {
+  super_admin
+  tenant_admin
+  technician
+}
+
+enum UserStatus {
+  active
+  suspended
+}
+
+enum StationStatus {
+  available
+  charging
+  offline
+  fault
+  maintenance
+}
+
+enum SessionStatus {
+  active
+  completed
+  stopped
+  error
+}
+
+enum TicketPriority {
+  low
+  medium
+  high
+  critical
+}
+
+enum TicketStatus {
+  open
+  in_progress
+  resolved
+  escalated
+}
+
+enum TicketCategory {
+  power_failure
+  screen_issue
+  charger_fault
+  system_failure
+  network_issue
+  maintenance
+}
+
+enum PaymentStatus {
+  paid
+  unpaid
+  refund
+}
+
+enum PaymentMethod {
+  rfid_card
+  cib
+  epayment
+}
+
+enum AlertSeverity {
+  info
+  warning
+  error
+}
+
+class Tenant <<table>> {
+  +tenant_id: varchar <<PK>>
+  name: varchar
+  logo: varchar
+  accent_color: varchar
+  accent_color_dark: varchar
+  created_at: timestamp
+}
+
+class User <<table>> {
+  +user_id: varchar <<PK>>
+  tenant_id: varchar <<FK>>
+  email: varchar <<UNIQUE>>
+  full_name: varchar
+  role: UserRole
+  status: UserStatus
+  privilege_template: varchar
+  created_at: timestamp
+  updated_at: timestamp
+}
+
+class Privilege <<table>> {
+  +privilege_key: varchar <<PK>>
+  label: varchar
+}
+
+class UserPrivilege <<table>> {
+  +user_id: varchar <<FK,PK>>
+  +privilege_key: varchar <<FK,PK>>
+  granted_at: timestamp
+}
+
+class Station <<table>> {
+  +station_id: varchar <<PK>>
+  tenant_id: varchar <<FK>>
+  name: varchar
+  city: varchar
+  address: varchar
+  status: StationStatus
+  latitude: decimal
+  longitude: decimal
+  current_tariff_dzd_per_kwh: decimal
+  created_at: timestamp
+  updated_at: timestamp
+}
+
+class Connector <<table>> {
+  +connector_id: varchar <<PK>>
+  station_id: varchar <<FK>>
+  connector_code: varchar
+  connector_type: varchar
+  max_power_kw: decimal
+  status: StationStatus
+}
+
+class ChargingSession <<table>> {
+  +session_id: varchar <<PK>>
+  tenant_id: varchar <<FK>>
+  station_id: varchar <<FK>>
+  connector_id: varchar <<FK>>
+  user_identifier: varchar
+  start_time: timestamp
+  end_time: timestamp?
+  duration_min: integer
+  energy_kwh: decimal
+  cost_dzd: decimal
+  status: SessionStatus
+}
+
+class Ticket <<table>> {
+  +ticket_id: varchar <<PK>>
+  tenant_id: varchar <<FK>>
+  station_id: varchar <<FK>>
+  created_by_user_id: varchar <<FK?>>
+  assigned_to_user_id: varchar <<FK?>>
+  title: varchar
+  description: text
+  category: TicketCategory
+  priority: TicketPriority
+  status: TicketStatus
+  sla_deadline: timestamp
+  created_at: timestamp
+  updated_at: timestamp
+}
+
+class TicketActivity <<table>> {
+  +activity_id: varchar <<PK>>
+  ticket_id: varchar <<FK>>
+  actor_user_id: varchar <<FK?>>
+  action: varchar
+  details: text
+  created_at: timestamp
+}
+
+class BillingRecord <<table>> {
+  +billing_id: varchar <<PK>>
+  tenant_id: varchar <<FK>>
+  station_id: varchar <<FK>>
+  invoice_number: varchar <<UNIQUE>>
+  sessions_count: integer
+  energy_kwh: decimal
+  amount_dzd: decimal
+  status: PaymentStatus
+  payment_method: PaymentMethod
+  processing_time_sec: decimal?
+  failed: boolean
+  billed_at: timestamp
+}
+
+class Alert <<table>> {
+  +alert_id: varchar <<PK>>
+  tenant_id: varchar <<FK>>
+  station_id: varchar <<FK?>>
+  ticket_id: varchar <<FK?>>
+  severity: AlertSeverity
+  message: text
+  created_at: timestamp
+}
+
+Tenant "1" -- "0..*" User
+Tenant "1" -- "0..*" Station
+Tenant "1" -- "0..*" ChargingSession
+Tenant "1" -- "0..*" Ticket
+Tenant "1" -- "0..*" BillingRecord
+Tenant "1" -- "0..*" Alert
+
+User "0..1" -- "0..*" Ticket : created_by
+User "0..1" -- "0..*" Ticket : assigned_to
+User "0..1" -- "0..*" TicketActivity : actor
+
+User "1" -- "0..*" UserPrivilege
+Privilege "1" -- "0..*" UserPrivilege
+
+Station "1" -- "1..*" Connector
+Station "1" -- "0..*" ChargingSession
+Station "1" -- "0..*" Ticket
+Station "1" -- "0..*" BillingRecord
+Station "0..1" -- "0..*" Alert
+
+Connector "1" -- "0..*" ChargingSession
+Ticket "1" -- "0..*" TicketActivity
+Ticket "0..1" -- "0..*" Alert
+
+note bottom of ChargingSession
+Use station_id + connector_id FK instead of stationName/connector text.
+Keeps joins and analytics consistent.
+end note
+
+note bottom of Ticket
+Store assigned_to_user_id and created_by_user_id.
+Avoid duplicated names; derive display name by join with User.
+end note
+
+@enduml

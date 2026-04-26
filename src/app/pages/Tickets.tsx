@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Plus, Calendar, User } from 'lucide-react';
 import { useTenant } from '../contexts/TenantContext';
 import { FilterBar } from '../components/dashboard/FilterBar';
@@ -7,6 +7,7 @@ import { SideDrawer } from '../components/dashboard/SideDrawer';
 import { ActivityLog } from '../components/dashboard/ActivityLog';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
+import { TableSkeleton } from '../components/dashboard/LoadingState';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Textarea } from '../components/ui/textarea';
@@ -26,11 +27,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../components/ui/select';
-import { mockTickets } from '../data/mockData';
 import { Ticket, TicketActivity, TicketCategory, TicketStatus } from '../types';
 import { format, formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
 import { loadUsers } from '../data/userStore';
+import { loadTickets, saveTickets } from '../data/ticketStore';
 
 const mockTicketActivities: TicketActivity[] = [
   {
@@ -73,8 +74,15 @@ const categoryLabels: Record<string, string> = {
 };
 
 export default function Tickets() {
-  const { currentTenant } = useTenant();
+  const { currentTenant, currentUser } = useTenant();
   const users = useMemo(() => loadUsers(), []);
+  const [tickets, setTickets] = useState<Ticket[]>(() => loadTickets());
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const t = setTimeout(() => setLoading(false), 1300);
+    return () => clearTimeout(t);
+  }, []);
   const [searchValue, setSearchValue] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
@@ -96,7 +104,7 @@ export default function Tickets() {
   const [statusUpdate, setStatusUpdate] = useState<TicketStatus>('open');
   const [note, setNote] = useState('');
 
-  const filteredTickets = mockTickets.filter((ticket) => {
+  const filteredTickets = tickets.filter((ticket) => {
     if (currentTenant && ticket.tenantId !== currentTenant.id) return false;
     if (statusFilter !== 'all' && ticket.status !== statusFilter) return false;
     if (priorityFilter !== 'all' && ticket.priority !== priorityFilter) return false;
@@ -148,6 +156,18 @@ export default function Tickets() {
     if (user.status === 'suspended') return false;
     return user.role !== 'super_admin';
   });
+
+  const getSlaHoursByPriority = (value: Ticket['priority']) => {
+    if (value === 'critical') return 2;
+    if (value === 'high') return 4;
+    if (value === 'medium') return 12;
+    return 24;
+  };
+
+  const persistTickets = (nextTickets: Ticket[]) => {
+    setTickets(nextTickets);
+    saveTickets(nextTickets);
+  };
 
   return (
     <div className="space-y-6">
@@ -211,7 +231,9 @@ export default function Tickets() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredTickets.length === 0 ? (
+              {loading ? (
+                <TableSkeleton cols={10} />
+              ) : filteredTickets.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={10} className="text-center py-8 text-gray-500">
                     No tickets found
@@ -221,7 +243,7 @@ export default function Tickets() {
                 filteredTickets.map((ticket) => (
                   <TableRow
                     key={ticket.id}
-                    className="cursor-pointer hover:bg-gray-50"
+                    className="cursor-pointer hover:bg-muted/50 transition-colors"
                     onClick={() => handleViewTicket(ticket)}
                   >
                     <TableCell>
@@ -392,6 +414,35 @@ export default function Tickets() {
             className="space-y-4"
             onSubmit={(event) => {
               event.preventDefault();
+              const now = new Date();
+              const selectedAssignee = assignableUsers.find(
+                (user) => user.id === assignedToId
+              );
+              const ticketId = `TKT-${Date.now().toString().slice(-6)}`;
+              const newTicket: Ticket = {
+                id: ticketId,
+                title: title.trim(),
+                description: description.trim(),
+                stationName: stationName.trim(),
+                category,
+                priority,
+                status: 'open',
+                assignedTo: selectedAssignee?.name ?? null,
+                assignedToId: selectedAssignee?.id ?? null,
+                createdById: currentUser?.id,
+                createdBy: currentUser?.name ?? 'System',
+                createdAt: now,
+                updatedAt: now,
+                tenantId:
+                  currentTenant?.id ??
+                  selectedAssignee?.tenantId ??
+                  currentUser?.tenantId ??
+                  'sonelgaz',
+                slaDeadline: new Date(
+                  now.getTime() + getSlaHoursByPriority(priority) * 60 * 60 * 1000
+                ),
+              };
+              persistTickets([newTicket, ...tickets]);
               toast.success('Task created and assigned');
               setActionDrawer((prev) => ({ ...prev, open: false }));
             }}
@@ -496,6 +547,28 @@ export default function Tickets() {
             className="space-y-4"
             onSubmit={(event) => {
               event.preventDefault();
+              const now = new Date();
+              const nextTickets = tickets.map((ticket) =>
+                ticket.id === actionDrawer.ticket?.id
+                  ? {
+                      ...ticket,
+                      status: statusUpdate,
+                      updatedAt: now,
+                    }
+                  : ticket
+              );
+              persistTickets(nextTickets);
+              if (selectedTicket?.id === actionDrawer.ticket.id) {
+                setSelectedTicket((prev) =>
+                  prev
+                    ? {
+                        ...prev,
+                        status: statusUpdate,
+                        updatedAt: now,
+                      }
+                    : prev
+                );
+              }
               toast.success(`Status updated for ${actionDrawer.ticket?.id}`);
               setActionDrawer((prev) => ({ ...prev, open: false }));
             }}
@@ -542,6 +615,16 @@ export default function Tickets() {
             className="space-y-4"
             onSubmit={(event) => {
               event.preventDefault();
+              const now = new Date();
+              const nextTickets = tickets.map((ticket) =>
+                ticket.id === actionDrawer.ticket?.id
+                  ? {
+                      ...ticket,
+                      updatedAt: now,
+                    }
+                  : ticket
+              );
+              persistTickets(nextTickets);
               toast.success(`Report logged for ${actionDrawer.ticket?.id}`);
               setActionDrawer((prev) => ({ ...prev, open: false }));
             }}

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Download, FileText, DollarSign, TrendingUp, CreditCard, Wallet, Globe, AlertTriangle, Clock, CheckCircle2, XCircle } from 'lucide-react';
 import { useTenant } from '../contexts/TenantContext';
 import { FilterBar } from '../components/dashboard/FilterBar';
@@ -14,6 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from '../components/ui/table';
+import { TableSkeleton } from '../components/dashboard/LoadingState';
 import { mockBillingRecords } from '../data/mockData';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
@@ -21,9 +22,15 @@ import type { PaymentMethod, PaymentMethodStats } from '../types';
 
 export default function Billing() {
   const { currentTenant } = useTenant();
+  const [loading, setLoading] = useState(true);
   const [searchValue, setSearchValue] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [paymentMethodFilter, setPaymentMethodFilter] = useState('all');
+
+  useEffect(() => {
+    const t = setTimeout(() => setLoading(false), 1300);
+    return () => clearTimeout(t);
+  }, []);
 
   const filteredRecords = mockBillingRecords.filter((record) => {
     if (currentTenant && record.tenantId !== currentTenant.id) return false;
@@ -359,7 +366,9 @@ export default function Billing() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredRecords.length === 0 ? (
+              {loading ? (
+                <TableSkeleton cols={9} />
+              ) : filteredRecords.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={9} className="text-center py-8 text-gray-500">
                     No billing records found
@@ -371,7 +380,7 @@ export default function Billing() {
                   const MethodIcon = methodInfo.icon;
 
                   return (
-                    <TableRow key={record.id}>
+                    <TableRow key={record.id} className="hover:bg-muted/50 transition-colors">
                       <TableCell>
                         <span className="font-mono text-sm">{record.invoiceNumber}</span>
                       </TableCell>
@@ -429,7 +438,7 @@ export default function Billing() {
         </div>
 
         {/* Summary Footer */}
-        <div className="border-t p-4 bg-gray-50">
+        <div className="border-t bg-muted/40 p-4">
           <div className="flex items-center justify-between text-sm">
             <span className="text-gray-600">
               Showing {filteredRecords.length} invoice(s)
