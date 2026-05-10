@@ -1,19 +1,43 @@
-﻿# Node
-node_modules/
+# ── Dependencies ──────────────────────────────────────────────
+**/node_modules/
 
-# Build output
-dist/
+# ── Environment / Secrets ─────────────────────────────────────
+**/.env
+**/.env.local
+**/.env.*.local
+# keep examples
+!**/.env.example
 
-# Logs
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
+# ── Build outputs ─────────────────────────────────────────────
+**/dist/
+**/build/
+**/.vite/
 
-# Env
-.env
-.env.*
+# ── LaTeX auxiliary files ─────────────────────────────────────
+*.aux
+*.log
+*.out
+*.toc
+*.lof
+*.lot
+*.bbl
+*.bcf
+*.blg
+*.run.xml
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+*.nav
+*.snm
+*.vrb
 
-# OS
+# ── PlantUML JAR (large binary) ───────────────────────────────
+diagramme/plantuml.jar
+
+# ── OS / Editor junk ──────────────────────────────────────────
 .DS_Store
 Thumbs.db
+desktop.ini
+.vscode/settings.json
+*.swp
+*~

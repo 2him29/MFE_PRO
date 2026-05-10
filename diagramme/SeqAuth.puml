@@ -1,0 +1,76 @@
+@startuml SeqAuth
+title Sequence Diagram — Authentication & OTP Verification (Super Admin)
+
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName Arial
+skinparam defaultFontSize 10
+skinparam dpi 180
+skinparam sequenceArrowThickness 1.5
+skinparam responseMessageBelowArrow true
+skinparam maxMessageSize 160
+skinparam sequenceGroupBorderThickness 1.5
+
+actor       "User"            as USER
+participant "Login Page"      as LOGIN
+participant "TenantContext"   as CTX
+participant "API Backend"     as API
+participant "OTP Service"     as OTP
+participant "OTP Verify Page" as VERIFY
+participant "Dashboard"       as DASH
+
+== Step 1: Credentials Input ==
+
+USER -> LOGIN   : Enter email, password,\nSuper Admin code, select tenant
+LOGIN -> LOGIN  : Auto-detect tenant from email domain
+LOGIN -> LOGIN  : Validate Super Admin code\nvs. VITE_SUPER_ADMIN_CODE
+
+alt Valid Super Admin code
+  LOGIN -> API  : POST /auth/login {email, password, tenantId}
+  API --> LOGIN : { token, user }
+  LOGIN -> CTX  : saveToken(token)
+
+  == Step 2: OTP Redirect (Super Admin only) ==
+
+  LOGIN -> CTX  : setPendingAuth({user, tenant})
+  LOGIN -> USER : Redirect to /verify-otp
+
+  == Step 3: OTP Verification ==
+
+  USER  -> VERIFY : Open OTP page
+  VERIFY -> CTX   : Check pendingAuth exists
+  VERIFY -> OTP   : requestOtp(email)
+  OTP  -> API     : POST /auth/otp/request
+  API --> OTP     : { demoCode }
+  OTP --> VERIFY  : OTP sent (email / UI demo)
+
+  USER  -> VERIFY : Enter 6-digit code
+  VERIFY -> OTP   : verifyOtp(email, code)
+  OTP  -> API     : POST /auth/otp/verify {email, code}
+
+  alt OTP correct (within 5 min / max 5 attempts)
+    API --> OTP     : { valid: true }
+    OTP --> VERIFY  : Success
+    VERIFY -> CTX   : setCurrentTenant(tenant)
+    VERIFY -> CTX   : setCurrentUser(user)
+    VERIFY -> CTX   : clearPendingAuth()
+    VERIFY -> DASH  : Redirect to /dashboard
+  else OTP incorrect or expired
+    API --> OTP     : { valid: false, reason }
+    OTP --> VERIFY  : Failure
+    VERIFY -> USER  : Show error message
+  end
+
+else Invalid Super Admin code
+  LOGIN -> USER : Show error "Invalid code"
+end
+
+== Tenant Admin / Technician (No OTP) ==
+
+note over USER, DASH
+  For Tenant Admin and Technician roles:
+  No OTP step. After successful POST /auth/login:
+  setCurrentTenant + setCurrentUser directly →
+  Redirect to /dashboard (Admin) or /my-tasks (Technician)
+end note
+
+@enduml

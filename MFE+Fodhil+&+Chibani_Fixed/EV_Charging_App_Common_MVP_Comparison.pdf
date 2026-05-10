@@ -1,0 +1,59 @@
+%PDF-1.4
+1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj
+2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 >> endobj
+3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >> endobj
+4 0 obj << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> endobj
+5 0 obj << /Length 3201 >> stream
+BT /F1 11 Tf 50 800 Td (EV Charging Apps - Similarities and Common MVP) Tj ET
+BT /F1 11 Tf 50 784 Td (Generated on: 2026-03-02) Tj ET
+BT /F1 11 Tf 50 768 Td (Apps compared: NextCharge, MobilyGreen/MobilyPass, GreenCharging, AMPECO) Tj ET
+BT /F1 11 Tf 50 752 Td () Tj ET
+BT /F1 11 Tf 50 736 Td (1\) Shared Similarities Across All Apps) Tj ET
+BT /F1 11 Tf 50 720 Td (- Charging station discovery through map/list interfaces.) Tj ET
+BT /F1 11 Tf 50 704 Td (- Station operational state visibility \(availability, busy, offline/fault\).) Tj ET
+BT /F1 11 Tf 50 688 Td (- Session lifecycle support \(start, monitor, stop\).) Tj ET
+BT /F1 11 Tf 50 672 Td (- Tariff/cost visibility before or during charging.) Tj ET
+BT /F1 11 Tf 50 656 Td (- User account/profile and session history.) Tj ET
+BT /F1 11 Tf 50 640 Td (- Operational reliability and incident handling as core value.) Tj ET
+BT /F1 11 Tf 50 624 Td () Tj ET
+BT /F1 11 Tf 50 608 Td (2\) Common MVP Features \(Cross-App Baseline\)) Tj ET
+BT /F1 11 Tf 50 592 Td (- Real-time map with filters \(connector type, power, status\).) Tj ET
+BT /F1 11 Tf 50 576 Td (- Station details page \(compatibility, pricing, last update\).) Tj ET
+BT /F1 11 Tf 50 560 Td (- Start/Stop charging flow \(QR/manual charger selection\).) Tj ET
+BT /F1 11 Tf 50 544 Td (- Active session screen \(time, kWh, estimated/actual cost\).) Tj ET
+BT /F1 11 Tf 50 528 Td (- Payments + billing records/invoices.) Tj ET
+BT /F1 11 Tf 50 512 Td (- Notifications \(session end, status change, fault alert\).) Tj ET
+BT /F1 11 Tf 50 496 Td (- Favorites/recent stations.) Tj ET
+BT /F1 11 Tf 50 480 Td (- Basic issue reporting/support channel.) Tj ET
+BT /F1 11 Tf 50 464 Td () Tj ET
+BT /F1 11 Tf 50 448 Td (3\) Admin-Side MVP Common Ground) Tj ET
+BT /F1 11 Tf 50 432 Td (- Dashboard KPIs \(active stations, sessions, energy, revenue, faults\).) Tj ET
+BT /F1 11 Tf 50 416 Td (- Station management with status controls and maintenance states.) Tj ET
+BT /F1 11 Tf 50 400 Td (- Live session monitoring with anomaly/remote-stop capability.) Tj ET
+BT /F1 11 Tf 50 384 Td (- Incident/ticket workflow with assignment and SLA tracking.) Tj ET
+BT /F1 11 Tf 50 368 Td (- Billing/report exports \(CSV/PDF\) and reconciliation states.) Tj ET
+BT /F1 11 Tf 50 352 Td (- Role-based access and audit trail for sensitive actions.) Tj ET
+BT /F1 11 Tf 50 336 Td () Tj ET
+BT /F1 11 Tf 50 320 Td (4\) Notable Positioning Differences) Tj ET
+BT /F1 11 Tf 50 304 Td (- NextCharge: consumer-focused UX depth and route/planning maturity.) Tj ET
+BT /F1 11 Tf 50 288 Td (- MobilyGreen/MobilyPass: strong roaming and payment ecosystem focus.) Tj ET
+BT /F1 11 Tf 50 272 Td (- GreenCharging: regional network simplicity and local deployment focus.) Tj ET
+BT /F1 11 Tf 50 256 Td (- AMPECO: B2B white-label operator platform for scalable operations.) Tj ET
+BT /F1 11 Tf 50 240 Td () Tj ET
+BT /F1 11 Tf 50 224 Td (5\) Recommended v1 Priority Set) Tj ET
+BT /F1 11 Tf 50 208 Td (- Map + station detail + live status + session control.) Tj ET
+BT /F1 11 Tf 50 192 Td (- Billing/reporting fundamentals and incident management.) Tj ET
+BT /F1 11 Tf 50 176 Td (- Multi-tenant admin context \(Sonelgaz and SAEIG\) with clear switcher.) Tj ET
+endstream endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000241 00000 n 
+0000000311 00000 n 
+trailer << /Size 6 /Root 1 0 R >>
+startxref
+3563
+%%EOF

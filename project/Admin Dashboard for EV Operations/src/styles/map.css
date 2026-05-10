@@ -1,0 +1,54 @@
+/* Custom styles for Leaflet map */
+.custom-station-marker,
+.tech-location-marker {
+  background: transparent;
+  border: none;
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.leaflet-popup-content {
+  margin: 0;
+}
+
+.leaflet-container {
+  font-family: inherit;
+}
+
+/* Technician location — pulsing ring */
+.tech-pulse-ring {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(37, 99, 235, 0.25);
+  animation: tech-pulse 2s ease-out infinite;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+@keyframes tech-pulse {
+  0% {
+    transform: translate(-50%, -50%) scale(0.5);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(2.8);
+    opacity: 0;
+  }
+}
+
+/* Navigation route — marching dashes */
+.nav-route {
+  animation: route-march 0.6s linear infinite;
+}
+
+@keyframes route-march {
+  to {
+    stroke-dashoffset: -18;
+  }
+}

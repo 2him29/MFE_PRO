@@ -1,0 +1,13 @@
+{
+  "name": "mfe",
+  "version": "1.0.0",
+  "description": "Ce document contient un questionnaire exploitable pour la phase d'etude des besoins de la plateforme web/mobile de gestion de bornes de recharge en Algerie.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}
