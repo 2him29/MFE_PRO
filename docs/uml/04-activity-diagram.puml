@@ -1,0 +1,41 @@
+@startuml
+title EV Charge DZ - Activity Diagram (Ticket Lifecycle)
+
+start
+
+:Issue detected\n(alert or manual report);
+:Tenant admin opens "Create Ticket";
+:Fill title, station, category,\npriority, assignee, description;
+
+if (Form valid?) then (yes)
+  :Compute SLA deadline by priority;
+  :Create ticket (status = open);
+  :Log activity "ticket created";
+else (no)
+  :Show validation error;
+  stop
+endif
+
+if (Assignee selected?) then (yes)
+  :Set assigned_to_user_id;
+  :Log activity "ticket assigned";
+  :Task appears in technician My Tasks;
+else (no)
+  :Keep ticket unassigned;
+endif
+
+:Technician opens My Tasks;
+
+while (Ticket resolved?) is (no)
+  :Technician updates status\n(open/in_progress/escalated);
+  :Technician submits field report;
+  :Update ticket.updated_at;
+  :Persist ticket changes;
+endwhile (yes)
+
+:Set status = resolved;
+:Log activity "ticket resolved";
+:Update dashboard metrics and alerts;
+
+stop
+@enduml
