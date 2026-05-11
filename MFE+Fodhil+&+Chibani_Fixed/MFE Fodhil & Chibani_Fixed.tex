@@ -1,11 +1,15 @@
+% !TEX program = xelatex
 \documentclass[12pt,a4paper]{report}
 
 %% ─── Packages ─────────────────────────────────────────────────────────────────
-\usepackage[utf8]{inputenc}
-\usepackage[T1]{fontenc}
-\usepackage{lmodern}
+\usepackage{fontspec}
+\setmainfont{Times New Roman}
 \usepackage{xcolor}            % must come BEFORE hyperref — enables blue!60!black mixing
-\usepackage[french,english]{babel}
+\usepackage{polyglossia}
+\setmainlanguage{english}
+\setotherlanguage{arabic}
+\newfontfamily\arabicfont[Script=Arabic, Scale=1.1]{Times New Roman}
+\newcommand{\lr}[1]{\textenglish{#1}}
 \usepackage{geometry}
 \usepackage{graphicx}
 \usepackage{array}
@@ -35,7 +39,7 @@
 \addbibresource{pfebiblio.bib}
 
 %% ─── Page geometry ─────────────────────────────────────────────────────────────
-\geometry{top=2.5cm, bottom=2.5cm, left=3cm, right=2.5cm}
+\geometry{top=2.5cm, bottom=2.5cm, left=2.5cm, right=2.5cm}
 \onehalfspacing
 \setlist[itemize]{label=--, leftmargin=1.2cm}
 
@@ -53,7 +57,6 @@
 
 %%%=============================================================================
 \begin{document}
-\selectlanguage{french}
 
 %% ─── TITLE PAGE ───────────────────────────────────────────────────────────────
 \includepdf[pages=1,fitpaper=true]{page_garde.pdf}
@@ -61,7 +64,8 @@
 %%%=============================================================================
 %%  FRONT MATTER
 %%%=============================================================================
-\selectlanguage{english}
+\hypersetup{pageanchor=false}
+\pagenumbering{roman}
 
 \chapter*{Dedication}
 \addcontentsline{toc}{chapter}{Dedication}
@@ -115,43 +119,92 @@ We are truly grateful for their dedication, support, and the lasting impact they
 our journey.
 
 % ──────────────────────────────────────────────────────────────────────────────
-\chapter*{General Introduction}
-\addcontentsline{toc}{chapter}{General Introduction}
+\chapter*{Résumé / Abstract}
+\addcontentsline{toc}{chapter}{Résumé / Abstract}
 
-The rapid global expansion of electric vehicle (EV) adoption has created an urgent need for
-robust, intelligent charging infrastructure management systems. According to the International
-Energy Agency, the global EV fleet surpassed 40 million vehicles in 2023, with continued
-exponential growth projected through the decade~\autocite{iea_ev_outlook_2024}. This transformation
-demands not only physical charging hardware but also sophisticated software platforms capable of
-managing stations, monitoring sessions, processing payments, and coordinating maintenance
-operations at scale.
+\section*{Résumé (Français)}
 
-In Algeria, where the automotive sector is undergoing gradual electrification, operators such as
-Sonelgaz (the national electricity provider) and private partners are beginning to deploy EV
-charging networks. However, the absence of purpose-built management software tailored to the
-Algerian regulatory environment and infrastructure context represents a significant barrier to
-scaled deployment.
+EV Charge Manager est une plateforme web multi-tenant dédiée à la gestion de l'infrastructure
+de recharge pour véhicules électriques (VE) en Algérie. Face à l'expansion progressive de la
+mobilité électrique et à l'absence de solutions logicielles adaptées au contexte réglementaire
+et infrastructurel algérien, ce projet vise à fournir un système de gestion complet, robuste
+et évolutif.
 
-This thesis presents \textbf{EV Charge Manager}, a multi-tenant web platform developed to address
-these challenges. The platform provides a comprehensive operational dashboard for managing charging
-stations, monitoring sessions, handling maintenance tickets, and processing billing records. It
-communicates with physical hardware using the Open Charge Point Protocol~1.6
-(OCPP~1.6)~\autocite{ocpp16_ed2} and is built on modern open-source web technologies.
+La plateforme offre une interface opérationnelle unifiée couvrant la gestion du cycle de vie
+des bornes de recharge, la supervision des sessions de charge, le traitement de la facturation,
+la gestion des tickets de maintenance et l'administration des droits d'accès. Elle repose sur
+le protocole Open Charge Point Protocol~1.6 (OCPP~1.6) pour la communication avec les
+équipements physiques et adopte une architecture trois tiers : une application web
+React~18/TypeScript, une API REST Node.js/Express.js, et une base de données MySQL~8.
 
-The work is organized as follows:
+Le modèle multi-tenant garantit une isolation complète des données entre opérateurs
+indépendants, avec un contrôle d'accès granulaire fondé sur les rôles (RBAC). Un mécanisme
+de dégradation gracieuse assure la continuité d'exploitation en mode hors ligne.
 
-\begin{itemize}
-  \item \textbf{Chapter~1} examines the ISO~15118 standard, which defines the vehicle-to-grid
-        communication interface and underpins advanced charging features such as Plug\,\&\,Charge
-        and demand response~\autocite{iso15118_2022}.
+Les résultats obtenus démontrent la faisabilité d'une solution de gestion de bornes adaptée
+au marché algérien, constituant une base technique solide pour un déploiement à grande échelle.
 
-  \item \textbf{Chapter~2} presents a comparative analysis of OCPP~1.6 and OCPP~2.0,
-        justifying the protocol choice for this project in the Algerian context~\autocite{ocpp16_ed2,
-        ocpp201}.
+\medskip
+\noindent\textbf{Mots-clés~:} véhicule électrique, gestion de bornes de recharge, OCPP~1.6,
+architecture multi-tenant, RBAC, React, Node.js, Algérie.
 
-  \item \textbf{Chapter~3} details the architecture, design, and implementation of the EV Charge
-        Manager platform, covering the frontend, backend API, database, and all functional modules.
-\end{itemize}
+\bigskip
+\section*{Abstract (English)}
+
+EV Charge Manager is a multi-tenant web platform designed to manage electric vehicle~(EV)
+charging infrastructure in Algeria. In response to the progressive electrification of the
+Algerian automotive sector and the absence of purpose-built management software adapted to
+the local regulatory environment, this project delivers an integrated, scalable, and robust
+charging management system.
+
+The platform provides a unified operational interface covering station lifecycle management,
+session monitoring, billing processing, maintenance ticket management, and user access
+administration. It communicates with physical hardware using the Open Charge Point
+Protocol~1.6~(OCPP~1.6) and follows a three-tier architecture comprising a React~18/TypeScript
+single-page application, a Node.js/Express.js REST API, and a MySQL~8 relational database.
+
+The multi-tenant model enforces complete data isolation between independent operators through
+role-based access control~(RBAC) with fine-grained privilege management. A graceful degradation
+strategy ensures operational continuity during network failures through browser-side caching.
+
+The results demonstrate the feasibility of a locally adapted EV charging management solution,
+establishing a solid technical foundation for large-scale deployment in the Algerian market.
+
+\medskip
+\noindent\textbf{Keywords:} electric vehicle, EV charging management, OCPP~1.6, multi-tenant
+architecture, RBAC, React, Node.js, Algeria.
+
+\bigskip
+\begin{Arabic}
+\section*{ملخص (بالعربية)}
+
+\lr{EV Charge Manager} هي منصة ويب متعددة المستأجرين (\lr{Multi-Tenant}) مخصصة لإدارة
+البنية التحتية لشحن المركبات الكهربائية في الجزائر. في ظل التوسع التدريجي للتنقل الكهربائي
+وغياب الحلول البرمجية الملائمة للسياق التنظيمي والبنيوي الجزائري، يهدف هذا المشروع إلى
+توفير نظام إدارة شامل وموثوق وقابل للتطوير.
+
+تُقدّم المنصة واجهة تشغيلية موحّدة تشمل إدارة دورة حياة محطات الشحن، والإشراف على جلسات
+الشحن، ومعالجة الفواتير، وإدارة تذاكر الصيانة، وضبط صلاحيات الوصول. وتعتمد على بروتوكول
+\lr{Open Charge Point Protocol 1.6 (OCPP 1.6)} للتواصل مع الأجهزة الفيزيائية، وتتبنى
+معمارية ثلاثية الطبقات تتكون من: تطبيق ويب مبني بـ\lr{React 18/TypeScript}، وواجهة برمجية
+\lr{REST API} مبنية بـ\lr{Node.js/Express.js}، وقاعدة بيانات \lr{MySQL 8}.
+
+يضمن النموذج متعدد المستأجرين عزلاً كاملاً للبيانات بين المشغّلين المستقلين، مع تحكم دقيق
+في الوصول مبني على الأدوار (\lr{RBAC}). كما يتضمن النظام آلية تدهور رشيق تكفل استمرارية
+التشغيل في وضع عدم الاتصال.
+
+تُثبت النتائج المحققة جدوى حل إدارة محطات الشحن المتكيّف مع السوق الجزائرية، مما يُشكّل
+أساساً تقنياً متيناً لنشره على نطاق واسع.
+
+\medskip
+\noindent\textbf{الكلمات المفتاحية:} المركبة الكهربائية، إدارة محطات الشحن،
+\lr{OCPP 1.6}، معمارية متعددة المستأجرين، \lr{RBAC}، \lr{React}، \lr{Node.js}، الجزائر.
+\end{Arabic}
+
+% ──────────────────────────────────────────────────────────────────────────────
+\tableofcontents
+\listoffigures
+\listoftables
 
 % ──────────────────────────────────────────────────────────────────────────────
 \chapter*{List of Abbreviations}
@@ -194,16 +247,91 @@ The work is organized as follows:
   V2G    & Vehicle-to-Grid \\
 \end{longtable}
 
-\tableofcontents
-\listoftables
-\listoffigures
 \clearpage
+\hypersetup{pageanchor=true}
+\pagenumbering{arabic}
+
+%%%=============================================================================
+%%  GENERAL INTRODUCTION
+%%%=============================================================================
+
+\chapter*{General Introduction}
+\addcontentsline{toc}{chapter}{General Introduction}
+
+The rapid global expansion of electric vehicle (EV) adoption has created an urgent need for
+robust, intelligent charging infrastructure management systems. According to the International
+Energy Agency, the global EV fleet surpassed 40 million vehicles in 2023, with continued
+exponential growth projected through the decade~\autocite{iea_ev_outlook_2024}. This transformation
+demands not only physical charging hardware but also sophisticated software platforms capable of
+managing stations, monitoring sessions, processing payments, and coordinating maintenance
+operations at scale.
+
+In Algeria, where the automotive sector is undergoing gradual electrification, operators such as
+Sonelgaz (the national electricity provider) and private partners are beginning to deploy EV
+charging networks. However, the absence of purpose-built management software tailored to the
+Algerian regulatory environment and infrastructure context represents a significant barrier to
+scaled deployment. This gap in the local market constitutes the central problematic that this
+work seeks to address.
+
+This thesis presents \textbf{EV Charge Manager}, a multi-tenant web platform developed to address
+these challenges. The platform provides a comprehensive operational interface for managing charging
+stations, monitoring sessions, handling maintenance tickets, and processing billing records. It
+communicates with physical hardware using the Open Charge Point Protocol~1.6
+(OCPP~1.6)~\autocite{ocpp16_ed2} and is built on modern open-source web technologies, with a
+deployment target adapted to the Algerian market.
+
+The work is organized as follows:
+
+\begin{itemize}
+  \item \textbf{Chapter~1} constitutes the first part of the state of the art. It examines the
+        ISO~15118 standard, which defines the vehicle-to-grid communication interface and underpins
+        advanced charging features such as Plug\,\&\,Charge and demand
+        response~\autocite{iso15118_2022}.
+
+  \item \textbf{Chapter~2} completes the state of the art with a comparative analysis of
+        OCPP~1.6 and OCPP~2.0, justifies the protocol choice for this project in the Algerian
+        context, and surveys existing EV charging management
+        platforms~\autocite{ocpp16_ed2, ocpp201}.
+
+  \item \textbf{Chapter~3} presents the requirements analysis for EV Charge Manager, identifying
+        the system actors, specifying functional and non-functional requirements, and establishing
+        the use cases and technical constraints that frame the design.
+
+  \item \textbf{Chapter~4} details the architectural and design decisions of the platform,
+        covering the three-tier architecture, multi-tenant isolation model, data model, access
+        control structure, and authentication flow.
+
+  \item \textbf{Chapter~5} presents the concrete implementation of all functional modules and
+        demonstrates the operational behaviour of the deployed platform.
+\end{itemize}
+
+\medskip
+\noindent\textbf{Declaration on the use of AI tools.} During the realization of this work,
+AI-assisted tools --- specifically Claude~AI (Anthropic) --- were used to support documentation
+drafting and code debugging. All content has been reviewed, corrected, and contextualised by
+the authors, who take full responsibility for the accuracy, originality, and integrity of this
+report.
+
+\clearpage
+
+%%%=============================================================================
+%%  PARTIE I — ÉTAT DE L'ART
+%%%=============================================================================
+
+\part*{État de l'Art}
+\addcontentsline{toc}{part}{État de l'Art}
 
 %%%=============================================================================
 %%  CHAPTER 1 — ISO 15118
 %%%=============================================================================
 
 \chapter{ISO~15118 Standard --- Definition \& Application in the EV Charging Platform}
+
+This chapter presents the ISO~15118 international standard, which governs the communication
+interface between electric vehicles and charging infrastructure. We examine its definition,
+its relevance to smart EV charging, and its concrete application within the context of this
+project, covering the system architecture, charging modes, dynamic parameter exchange, demand
+response, IoT integration, and security mechanisms.
 
 \section{What is ISO~15118?}
 
@@ -681,28 +809,164 @@ limited. OCPP~1.6 is supported by most available charging stations and offers su
 capabilities for remote monitoring, transaction management, and basic smart charging. Therefore,
 OCPP~1.6 represents a practical and cost-effective choice for the proposed system~\autocite{ocpp16_ed2}.
 
+\clearpage
+
 %%%=============================================================================
-%%  CHAPTER 3 — EV CHARGE MANAGER
+%%  PARTIE II — CONCEPTION ET RÉALISATION
 %%%=============================================================================
 
-\chapter{EV Charge Manager --- Platform Design and Implementation}
+\part*{Conception et Réalisation}
+\addcontentsline{toc}{part}{Conception et Réalisation}
 
-\section{Platform Overview}
+%%%=============================================================================
+%%  CHAPTER 3 — ANALYSE ET SPÉCIFICATION DES BESOINS
+%%%=============================================================================
 
-EV Charge Manager is a full-stack, multi-tenant web platform designed to manage electric vehicle
-charging infrastructure in Algeria. The platform provides a unified operational interface for
-three categories of stakeholders: platform administrators who oversee the entire network, tenant
-administrators who manage their operator's stations and operations, and field technicians who
-execute maintenance tasks.
+\chapter{Analyse et Spécification des Besoins}
 
-The platform is built around the OCPP~1.6 protocol~\autocite{ocpp16_ed2} for communication with
-physical charging stations, and exposes a RESTful API consumed by a responsive single-page web
-dashboard. It targets the specific operational context of Algeria, where current EV deployment
-relies on OCPP~1.6-compatible hardware and the Algerian Dinar (DZD) is used as the billing
-currency~\autocite{iea_ev_outlook_2024}.
+This chapter presents the requirements analysis for the EV Charge Manager platform. We identify
+the system actors, specify the functional and non-functional requirements, present the use case
+diagram, and outline the technical constraints that shaped the architectural decisions described
+in the following chapter.
 
 % ──────────────────────────────────────────────────────────────────────────────
-\section{System Architecture}
+\section{Identification of System Actors}
+
+Three principal actors interact with the EV Charge Manager platform:
+
+\begin{itemize}
+  \item \textbf{Super Administrator}: Manages the entire platform across all tenants. This actor
+        has unrestricted access to all modules: stations, sessions, billing, maintenance tickets,
+        user management, and archive records.
+  \item \textbf{Tenant Administrator}: Manages one operator's charging network. Access is
+        restricted to the data belonging to their tenant. This actor can supervise stations,
+        sessions, billing, and tickets within their scope.
+  \item \textbf{Technician}: A field maintenance agent who accesses only the maintenance tickets
+        assigned to them. This actor has no visibility into other modules or unrelated tickets.
+\end{itemize}
+
+An implicit external actor is the OCPP-compatible charging station hardware, which communicates
+with the backend system via the WebSocket-based OCPP~1.6 protocol~\autocite{ocpp16_ed2}.
+
+% ──────────────────────────────────────────────────────────────────────────────
+\section{Functional Requirements}
+
+The following functional requirements were identified through analysis of the operational needs
+of EV charging network operators in Algeria:
+
+\begin{itemize}
+  \item \textbf{RF01~---~Authentication}: The system shall allow users to authenticate via
+        email and password, with mandatory OTP two-factor verification sent to the registered
+        email address.
+  \item \textbf{RF02~---~Multi-Tenant Isolation}: The system shall enforce complete data
+        isolation between tenants; each operator shall access only their own stations, sessions,
+        tickets, billing records, and users.
+  \item \textbf{RF03~---~User Management}: Super administrators shall create, modify, suspend,
+        and reactivate platform users, assigning them a role and privilege template.
+  \item \textbf{RF04~---~Operational Dashboard}: The system shall provide a real-time dashboard
+        displaying seven KPIs (active stations, offline stations, under-maintenance stations,
+        active sessions, energy delivered, revenue, and network uptime) with period filtering
+        and drilldown panels.
+  \item \textbf{RF05~---~Station Management}: Operators shall manage the full lifecycle of
+        charging stations, including creation with GPS coordinates, connector configuration,
+        tariff setting, status control, and CSV export.
+  \item \textbf{RF06~---~Session Monitoring}: The system shall log all charging sessions with
+        complete metadata (station, connector, user, duration, energy, cost, status) and allow
+        filtering and CSV export.
+  \item \textbf{RF07~---~Billing}: The system shall support billing in Algerian Dinars~(DZD)
+        for three payment methods: RFID card, CIB bank card, and e-payment, with per-method
+        performance analytics.
+  \item \textbf{RF08~---~Maintenance Tickets}: Operators shall create maintenance tickets with
+        category, priority, SLA deadline, and technician assignment. The system shall escalate
+        tickets automatically when their SLA deadline is breached.
+  \item \textbf{RF09~---~Technician Task Queue}: Technicians shall view and update only the
+        tickets assigned to them, with full access to the activity log.
+  \item \textbf{RF10~---~Offline Degradation}: The frontend shall remain operational in
+        read-only mode when the backend is unreachable, serving data cached in
+        \texttt{localStorage}.
+\end{itemize}
+
+% ──────────────────────────────────────────────────────────────────────────────
+\section{Non-Functional Requirements}
+
+\begin{itemize}
+  \item \textbf{RNF01~---~Performance}: Dashboard KPIs must refresh within two seconds; REST
+        API response time must not exceed 500\,ms under normal operating load.
+  \item \textbf{RNF02~---~Security}: All API endpoints must be protected by JWT bearer token
+        authentication~\autocite{rfc7519}; passwords must be hashed using bcrypt; every login must
+        complete OTP verification before a token is issued.
+  \item \textbf{RNF03~---~Availability}: The platform must degrade gracefully when the backend
+        is unreachable, displaying a visible offline-mode banner and serving cached data without
+        crashing.
+  \item \textbf{RNF04~---~Scalability}: The multi-tenant architecture must support additional
+        operators without code changes, relying on \texttt{tenant\_id} scoping at the database
+        level.
+  \item \textbf{RNF05~---~Maintainability}: The codebase must use TypeScript strict typing
+        throughout; the API must expose a consistent RESTful interface with clear endpoint naming.
+  \item \textbf{RNF06~---~Portability}: The platform must run on any modern browser (Chrome,
+        Firefox, Edge) without requiring native application installation.
+\end{itemize}
+
+% ──────────────────────────────────────────────────────────────────────────────
+\section{Use Case Diagram}
+
+The use case diagram in Figure~\ref{fig:usecase-diagram} illustrates the interactions between
+the three system actors and the platform's functional modules. The super administrator has
+unrestricted access across all modules. The tenant administrator's scope is restricted to their
+operator's data. The technician's access is limited exclusively to their assigned maintenance
+tasks.
+
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=0.72\textwidth, height=0.92\textheight, keepaspectratio]{../diagramme/UseCaseDiag.png}
+  \caption{Use Case Diagram --- EV Charge DZ Admin Platform}
+  \label{fig:usecase-diagram}
+\end{figure}
+
+% ──────────────────────────────────────────────────────────────────────────────
+\section{Technical Constraints}
+
+\subsection{Protocol Constraint --- OCPP~1.6}
+
+The platform must implement OCPP~1.6 for station communication~\autocite{ocpp16_ed2}. As
+established in Chapter~2, OCPP~2.0.1 was evaluated but excluded due to limited hardware
+availability and network infrastructure maturity in Algeria.
+
+\subsection{Regulatory and Market Constraints}
+
+All billing must be expressed in Algerian Dinars~(DZD). Payment integration must support the
+CIB interbank card network and local e-payment services, reflecting the payment landscape
+available to Algerian EV operators and end users.
+
+\subsection{Network Infrastructure Constraints}
+
+Given variable connectivity conditions in certain Algerian deployment areas, the frontend must
+retain functionality in partial offline scenarios. Operators must not lose access to operational
+data during temporary backend outages.
+
+% ──────────────────────────────────────────────────────────────────────────────
+\section{Conclusion}
+
+This chapter has established the complete requirements baseline for the EV Charge Manager
+platform. Ten functional requirements and six non-functional requirements, combined with three
+categories of technical and regulatory constraints, define the scope and boundaries of the
+system. These requirements directly inform the architectural choices presented in Chapter~4 and
+are validated by the implementation demonstrated in Chapter~5.
+
+%%%=============================================================================
+%%  CHAPTER 4 — CONCEPTION
+%%%=============================================================================
+
+\chapter{EV Charge Manager --- Architecture and Design}
+
+This chapter presents the architectural and design decisions for EV Charge Manager, translating
+the requirements established in Chapter~3 into a concrete technical blueprint. We describe the
+general three-tier architecture, the multi-tenant isolation model, the data model, the user
+access control structure, the authentication flow, and the technology stack selected for the
+implementation.
+
+% ──────────────────────────────────────────────────────────────────────────────
+\section{General Architecture}
 
 The platform follows a standard three-tier architecture:
 
@@ -719,9 +983,12 @@ The platform follows a standard three-tier architecture:
 \end{itemize}
 
 The frontend communicates with the backend via a centralized API client module. All requests are
-authenticated using JSON Web Tokens (JWT)~\autocite{rfc7519}. The application is designed to degrade
-gracefully: when the backend is unreachable, it falls back to locally persisted data
+authenticated using JSON Web Tokens (JWT)~\autocite{rfc7519}. The application is designed to
+degrade gracefully: when the backend is unreachable, it falls back to locally persisted data
 (browser \texttt{localStorage}) and notifies the operator with a visible offline-mode banner.
+
+% ──────────────────────────────────────────────────────────────────────────────
+\section{Technology Stack}
 
 \begin{table}[h!]
   \centering
@@ -748,20 +1015,11 @@ gracefully: when the backend is unreachable, it falls back to locally persisted 
   \end{tabular}
 \end{table}
 
-\begin{landscape}
-\begin{figure}[p]
-  \centering
-  \includegraphics[width=\linewidth, height=0.88\textheight, keepaspectratio]{../diagramme/ClassDiag.png}
-  \caption{Class Diagram --- EV Charge DZ (Database-Oriented)}
-  \label{fig:class-diagram}
-\end{figure}
-\end{landscape}
-
 % ──────────────────────────────────────────────────────────────────────────────
 \section{Multi-Tenant Architecture}
 
-The platform supports multiple independent operators---referred to as \textit{tenants}---each with
-complete data isolation. Two tenants are currently configured:
+The platform supports multiple independent operators---referred to as \textit{tenants}---each
+with complete data isolation. Two tenants are currently configured:
 
 \begin{itemize}
   \item \textbf{Sonelgaz}: Algeria's national electricity company and primary EV infrastructure
@@ -771,10 +1029,30 @@ complete data isolation. Two tenants are currently configured:
 
 Tenant isolation is enforced at the database level through a \texttt{tenant\_id} foreign key on
 all operational entities (stations, sessions, tickets, billing records, and users). At the
-application level, a \textit{TenantContext} React context propagates the active tenant across all
-components, which filter their data accordingly. Each tenant may also define custom branding
-(accent color, logo), providing a white-label experience for their administrators while sharing
-common platform infrastructure.
+application level, a \textit{TenantContext} React context propagates the active tenant across
+all components, which filter their data accordingly. Each tenant may also define custom branding
+(accent color, logo), providing a white-label experience while sharing common platform
+infrastructure.
+
+% ──────────────────────────────────────────────────────────────────────────────
+\section{Data Model}
+
+The class diagram in Figure~\ref{fig:class-diagram} presents the database-oriented data model
+of EV Charge Manager. The central entities are \texttt{Station}, \texttt{Session},
+\texttt{Ticket}, \texttt{Invoice}, and \texttt{User}, each carrying a \texttt{tenant\_id}
+foreign key that enforces the multi-tenant isolation described in the previous section.
+Stations are linked to Sessions (one-to-many), and Sessions aggregate into Invoice records. The
+\texttt{Ticket} entity references both a \texttt{Station} and an assigned \texttt{User}
+(technician), and carries a full activity log for audit purposes.
+
+\begin{landscape}
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=\linewidth, height=0.88\textheight, keepaspectratio]{../diagramme/ClassDiag.png}
+  \caption{Class Diagram --- EV Charge DZ (Database-Oriented)}
+  \label{fig:class-diagram}
+\end{figure}
+\end{landscape}
 
 % ──────────────────────────────────────────────────────────────────────────────
 \section{User Roles and Access Control}
@@ -798,28 +1076,21 @@ The platform implements Role-Based Access Control (RBAC) with three distinct use
   \end{tabular}
 \end{table}
 
-Beyond role assignment, the platform also supports thirteen fine-grained privilege types
+Beyond role assignment, the platform supports thirteen fine-grained privilege types
 (e.g., \texttt{stations\_manage}, \texttt{billing\_view}, \texttt{reports\_export}), organized
 into five templates for rapid onboarding: \textit{standard\_admin}, \textit{operations\_admin},
-\textit{finance\_admin}, \textit{technician\_default}, and \textit{custom}. Routes in the frontend
-are guarded by a \texttt{RequireAuth} component that verifies both authentication and role before
-rendering any protected page.
-
-\begin{figure}[p]
-  \centering
-  \includegraphics[width=0.72\textwidth, height=0.92\textheight, keepaspectratio]{../diagramme/UseCaseDiag.png}
-  \caption{Use Case Diagram --- EV Charge DZ Admin Platform}
-  \label{fig:usecase-diagram}
-\end{figure}
+\textit{finance\_admin}, \textit{technician\_default}, and \textit{custom}. Routes in the
+frontend are guarded by a \texttt{RequireAuth} component that verifies both authentication and
+role before rendering any protected page.
 
 % ──────────────────────────────────────────────────────────────────────────────
-\section{Authentication System}
+\section{Authentication Design}
 
 User authentication follows a two-factor flow:
 
 \begin{enumerate}
   \item The user submits their email, password, and tenant identifier on the login screen.
-  \item The backend validates the credentials and generates a One-Time Password (OTP) sent to
+  \item The backend validates the credentials and generates a One-Time Password~(OTP) sent to
         the registered email address.
   \item The user enters the OTP on a dedicated verification screen. On successful validation,
         the backend issues a signed JWT~\autocite{rfc7519}.
@@ -830,7 +1101,8 @@ User authentication follows a two-factor flow:
 
 The JWT is stored in the browser's \texttt{localStorage} and is cleared on logout. The
 \texttt{RequireAuth} component performs a client-side token presence check and role verification
-before rendering any dashboard route.
+before rendering any dashboard route. The sequence diagram in Figure~\ref{fig:seq-auth}
+illustrates the complete authentication and OTP verification flow for a super administrator.
 
 \begin{figure}[p]
   \centering
@@ -838,6 +1110,35 @@ before rendering any dashboard route.
   \caption{Sequence Diagram --- Authentication and OTP Verification Flow (Super Admin)}
   \label{fig:seq-auth}
 \end{figure}
+
+% ──────────────────────────────────────────────────────────────────────────────
+\section{Conclusion}
+
+The architectural choices presented in this chapter --- three-tier separation, tenant-scoped
+database isolation, RBAC with thirteen fine-grained privileges, and two-factor JWT
+authentication --- directly address the functional and non-functional requirements identified in
+Chapter~3. Together they constitute the technical blueprint for the platform implementation
+detailed in Chapter~5.
+
+%%%=============================================================================
+%%  CHAPTER 5 — RÉALISATION ET TESTS
+%%%=============================================================================
+
+\chapter{EV Charge Manager --- Réalisation et Tests}
+
+This chapter presents the concrete implementation of EV Charge Manager, module by module. Each
+section describes the operational interface and behaviour of a functional component, demonstrating
+how the design decisions of Chapter~4 translate into a working charging management platform. We
+also describe the development environment and conclude with a comprehensive platform summary.
+
+% ──────────────────────────────────────────────────────────────────────────────
+\section{Development Environment}
+
+The platform was developed on Windows~11 using Node.js~18~LTS for the backend runtime,
+MySQL~8 Community Edition as the database server, and the Vite development server for the
+React frontend. Visual Studio Code was used as the primary integrated development environment,
+with ESLint and Prettier extensions enforcing code style consistency across the codebase. Git
+was used for version control, with the project repository hosted on GitHub.
 
 % ──────────────────────────────────────────────────────────────────────────────
 \section{Dashboard Module}
@@ -882,7 +1183,7 @@ two complementary views:
         color-coded marker (by operational status). Clicking a marker reveals station details.
 \end{itemize}
 
-\subsubsection*{Connector Standards}
+\subsection{Connector Standards}
 
 Each station may host multiple connector types simultaneously. The platform supports the three
 main standards deployed in Algeria and internationally:
@@ -903,28 +1204,28 @@ main standards deployed in Algeria and internationally:
   \end{tabular}
 \end{table}
 
-\subsubsection*{Station Status Values}
+\subsection{Station Status Values}
 
 Stations cycle through five operational states: \textit{available} (idle, ready),
 \textit{charging} (session active), \textit{offline} (network lost), \textit{fault} (hardware
-or software fault detected via OCPP~\autocite{ocpp16_ed2}), and \textit{maintenance} (under scheduled
-service).
+or software fault detected via OCPP~\autocite{ocpp16_ed2}), and \textit{maintenance} (under
+scheduled service).
 
-\subsubsection*{Station Actions}
+\subsection{Station Actions}
 
 Operators can: enable a station, disable it, toggle maintenance mode, update the tariff
-(DZD/kWh), and create a new station with GPS coordinates selected via an embedded location picker
-map. All status-changing actions require confirmation through a modal dialog and are logged in the
-system audit trail. A CSV export function allows operators to download the current filtered
-station list for external reporting.
+(DZD/kWh), and create a new station with GPS coordinates selected via an embedded location
+picker map. All status-changing actions require confirmation through a modal dialog and are
+logged in the system audit trail. A CSV export function allows operators to download the
+current filtered station list for external reporting.
 
 % ──────────────────────────────────────────────────────────────────────────────
 \section{Session Monitoring Module}
 
 The Sessions module provides a chronological log of all charging sessions associated with the
-active tenant. Each session record contains: a unique session identifier, the source station name,
-the connector used, the user's identifier (RFID tag or account ID), session start time, duration
-(minutes), energy delivered (kWh), billing amount (DZD), and final status.
+active tenant. Each session record contains: a unique session identifier, the source station
+name, the connector used, the user's identifier (RFID tag or account ID), session start time,
+duration (minutes), energy delivered (kWh), billing amount (DZD), and final status.
 
 Session status values are: \textit{active} (ongoing), \textit{completed} (ended normally),
 \textit{stopped} (manually interrupted by user or operator), or \textit{error} (abnormal
@@ -944,11 +1245,11 @@ three payment methods common in the Algerian market:
   \item \textbf{E-Payment}: Mobile wallet or online payment gateway.
 \end{itemize}
 
-Each billing record includes an invoice number, associated station, number of sessions aggregated,
-total energy consumed (kWh), total amount (DZD), payment status (paid, unpaid, or refund), and
-the payment processing timestamp. The module provides per-method performance statistics, including
-transaction count, success rate, failed transaction count, average processing time (seconds), and
-revenue contribution percentage.
+Each billing record includes an invoice number, associated station, number of sessions
+aggregated, total energy consumed (kWh), total amount (DZD), payment status (paid, unpaid, or
+refund), and the payment processing timestamp. The module provides per-method performance
+statistics, including transaction count, success rate, failed transaction count, average
+processing time (seconds), and revenue contribution percentage.
 
 % ──────────────────────────────────────────────────────────────────────────────
 \section{Maintenance Ticket System}
@@ -968,13 +1269,13 @@ operator---a ticket is created with the following attributes:
         timestamp and actor identity, providing a complete audit trail.
 \end{itemize}
 
-The ticket lifecycle follows four states:
+The ticket lifecycle follows four states, as illustrated in Figure~\ref{fig:activity-ticket}:
 \textit{open} $\rightarrow$ \textit{in\_progress} $\rightarrow$ \textit{resolved}
 (or \textit{escalated} if the SLA deadline is breached without resolution).
 
-Technicians access their work queue through the dedicated \textit{My Tasks} page, which displays
-only tickets assigned to the currently logged-in user, allowing them to focus exclusively on their
-own workload without visibility into unrelated tickets.
+Technicians access their work queue through the dedicated \textit{My Tasks} page, which
+displays only tickets assigned to the currently logged-in user, allowing them to focus
+exclusively on their own workload without visibility into unrelated tickets.
 
 \begin{figure}[p]
   \centering
@@ -993,8 +1294,8 @@ template. Templates automatically assign the thirteen available privilege flags 
 the selected operational profile, while the \textit{custom} template allows manual selection of
 individual privileges.
 
-User accounts can be suspended (blocking login without deletion) and reactivated, providing full
-lifecycle management of operator personnel.
+User accounts can be suspended (blocking login without deletion) and reactivated, providing
+full lifecycle management of operator personnel.
 
 % ──────────────────────────────────────────────────────────────────────────────
 \section{Data Resilience and Offline Mode}
@@ -1035,6 +1336,17 @@ data even during connectivity interruptions.
     \bottomrule
   \end{tabular}
 \end{table}
+
+% ──────────────────────────────────────────────────────────────────────────────
+\section{Conclusion}
+
+EV Charge Manager's implementation fulfils all ten functional requirements identified in
+Chapter~3 and follows the architecture designed in Chapter~4. The seven operational
+modules --- dashboard, station management, session monitoring, billing, maintenance tickets,
+user management, and offline resilience --- collectively deliver a production-ready charging
+management solution adapted to Algeria's EV infrastructure context. The platform provides a
+complete, locally adapted response to the gap identified in the introduction, and establishes
+a solid foundation for the future enhancements described in the general conclusion.
 
 %%%=============================================================================
 %%  GENERAL CONCLUSION
@@ -1107,7 +1419,7 @@ electric mobility infrastructure.
 %%  BIBLIOGRAPHY
 %%%=============================================================================
 
-\newpage
+\clearpage
 \printbibliography[
   heading = bibintoc,          % add "References" to the table of contents
   title   = {References},
