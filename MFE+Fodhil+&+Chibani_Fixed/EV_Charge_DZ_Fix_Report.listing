@@ -1,5 +1,0 @@
-# project/.env -- three new variables
-# VITE_API_BASE_URL commented out to activate LocalOtpService
-VITE_EMAILJS_SERVICE_ID=service_7qjrfyh
-VITE_EMAILJS_TEMPLATE_ID=template_wismnvm
-VITE_EMAILJS_PUBLIC_KEY=XlcMu3VjxFiotUajv

@@ -7,6 +7,12 @@
 **/.env.*.local
 # keep examples
 !**/.env.example
+# Firebase service-account key — never commit
+**/firebase-service-account.json
+# Android local SDK paths
+**/local.properties
+# IDE project files
+.idea/
 
 # ── Build outputs ─────────────────────────────────────────────
 **/dist/

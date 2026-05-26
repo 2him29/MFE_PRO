@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "925949606313",
+    "project_id": "ev-charge-dz",
+    "storage_bucket": "ev-charge-dz.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:925949606313:android:3dcc2339ccfe2491372cb8",
+        "android_client_info": {
+          "package_name": "com.mfe_client"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyANw6rPSkW1e-AA8IwlAC9CT6dMjaJun_c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
