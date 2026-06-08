@@ -1,0 +1,313 @@
+% !TEX program = xelatex
+\documentclass[12pt,a4paper]{article}
+
+\usepackage{fontspec}
+\setmainfont{Arial}
+\usepackage{geometry}
+\geometry{top=2.5cm, bottom=2.5cm, left=2.5cm, right=2.5cm}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{setspace}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{mdframed}
+\usepackage{amssymb}
+
+\hypersetup{colorlinks=true, linkcolor=blue!60!black, urlcolor=blue!70!black}
+\onehalfspacing
+
+% ── Colours ───────────────────────────────────────────────────────────────────
+\definecolor{primary}{RGB}{30,58,138}
+\definecolor{accent}{RGB}{37,99,235}
+\definecolor{warning}{RGB}{180,83,9}
+\definecolor{success}{RGB}{22,101,52}
+\definecolor{codebg}{RGB}{241,245,249}
+
+% ── Section styling ───────────────────────────────────────────────────────────
+\titleformat{\section}{\large\bfseries\color{primary}}{}{0em}{}[\color{accent}\rule{\linewidth}{0.8pt}]
+\titleformat{\subsection}{\normalsize\bfseries\color{accent}}{}{0em}{}
+
+% ── Header / Footer ───────────────────────────────────────────────────────────
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\color{gray}\small EVCharge APK Build Guide}
+\lhead{\color{gray}\small Fodhil \& Chibani --- MFE 2025--2026}
+\cfoot{\thepage}
+
+% ── Code box ─────────────────────────────────────────────────────────────────
+\newmdenv[backgroundcolor=codebg, linecolor=accent, linewidth=1pt,
+          innerleftmargin=10pt, innerrightmargin=10pt,
+          innertopmargin=6pt, innerbottommargin=6pt]{codebox}
+
+% ── Info box ─────────────────────────────────────────────────────────────────
+\newmdenv[backgroundcolor=blue!5, linecolor=accent, linewidth=1.5pt,
+          innerleftmargin=10pt, innerrightmargin=10pt,
+          innertopmargin=8pt, innerbottommargin=8pt]{infobox}
+
+% ── Warning box ───────────────────────────────────────────────────────────────
+\newmdenv[backgroundcolor=orange!8, linecolor=warning, linewidth=1.5pt,
+          innerleftmargin=10pt, innerrightmargin=10pt,
+          innertopmargin=8pt, innerbottommargin=8pt]{warnbox}
+
+%%%=============================================================================
+\begin{document}
+%%%=============================================================================
+
+% ── Title ─────────────────────────────────────────────────────────────────────
+\begin{center}
+  {\LARGE\bfseries\color{primary} EVCharge Android Application}\\[0.4em]
+  {\large\color{accent} APK Build \& Deployment Guide}\\[0.6em]
+  {\normalsize Fodhil Yacine \& Chibani Abderrahmane \quad --- \quad MFE 2025--2026}\\[0.2em]
+  {\small\color{gray} For internal use --- to be read before building the installable APK}
+\end{center}
+
+\vspace{0.5em}
+\noindent\color{accent}\rule{\linewidth}{1.5pt}
+\vspace{1em}
+
+% ── Overview ──────────────────────────────────────────────────────────────────
+\section{System Overview}
+
+The EVCharge application is an Android mobile app that communicates with a
+Node.js/Express backend server running on a PC. The app and the server must be
+on the \textbf{same network} for the app to function. The server runs on
+\textbf{port 3001}.
+
+\begin{center}
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{|>{\bfseries}p{4cm}|p{9cm}|}
+  \hline
+  Component       & Details \\ \hline
+  Android App     & EVCharge --- built with Kotlin + Jetpack Compose \\ \hline
+  Backend Server  & Node.js + Express.js, running on the PC at port 3001 \\ \hline
+  Database        & MySQL 8, running locally on the PC \\ \hline
+  Communication   & HTTP REST API + WebSocket (ws://) \\ \hline
+  Push Notifications & Firebase Cloud Messaging (FCM) --- requires internet \\ \hline
+\end{tabular}
+\end{center}
+
+% ── Critical File ─────────────────────────────────────────────────────────────
+\section{The Critical Configuration File}
+
+There is \textbf{one file} that controls how the app connects to the server:
+
+\begin{codebox}
+\texttt{EVCharge\_app/app/src/main/java/com/example/evcharge/network/ServerConfig.kt}
+\end{codebox}
+
+\noindent Its content is:
+
+\begin{codebox}
+\begin{verbatim}
+object ServerConfig {
+    const val HOST      = "192.168.137.1"   // <-- THIS IS WHAT YOU CHANGE
+    const val PORT      = 3001
+    const val HTTP_BASE = "http://$HOST:$PORT/"
+    const val WS_URL    = "ws://$HOST:$PORT/ws"
+}
+\end{verbatim}
+\end{codebox}
+
+\begin{warnbox}
+\textbf{Important:} The \texttt{HOST} value must match the \textbf{PC's IP address} on
+the network the phone will use. If the IP is wrong, the map will be empty and no data
+will load. This is the only value that ever needs to change.
+\end{warnbox}
+
+\begin{warnbox}
+\textbf{Current state of the file:} At the time of writing, \texttt{ServerConfig.kt}
+contains \texttt{HOST = "192.168.100.3"} (used for home testing on the local WiFi
+network). \textbf{Before building the presentation APK, this value must be changed to
+\texttt{"192.168.137.1"}} so the app connects via the Windows hotspot.
+\end{warnbox}
+
+% ── Scenario A ────────────────────────────────────────────────────────────────
+\section{Scenario A --- Presentation / Demo Day (Recommended Setup)}
+
+This is the \textbf{recommended setup for the presentation}. The PC creates its own
+WiFi hotspot, so no external router is needed and the IP is always the same.
+
+\begin{infobox}
+When Windows creates a mobile hotspot, it always assigns itself the IP address
+\textbf{192.168.137.1} --- this never changes regardless of location.
+\end{infobox}
+
+\subsection{Step 1 --- Set the HOST in ServerConfig.kt}
+
+Make sure \texttt{ServerConfig.kt} contains:
+
+\begin{codebox}
+\texttt{const val HOST = "192.168.137.1"}
+\end{codebox}
+
+\subsection{Step 2 --- Enable Windows Mobile Hotspot}
+
+\begin{enumerate}[leftmargin=1.5cm]
+  \item Open \textbf{Settings} $\rightarrow$ \textbf{Network \& Internet} $\rightarrow$
+        \textbf{Mobile hotspot}
+  \item Turn the hotspot \textbf{ON}
+  \item Note the network name (SSID) and password shown on screen
+\end{enumerate}
+
+\subsection{Step 3 --- Connect the Android Phone}
+
+\begin{enumerate}[leftmargin=1.5cm]
+  \item On the Android phone, open \textbf{WiFi settings}
+  \item Connect to the hotspot network created in Step 2
+  \item Confirm the phone shows ``Connected''
+\end{enumerate}
+
+\subsection{Step 4 --- Start the Backend Server}
+
+On the PC, open a terminal in the server folder and run:
+
+\begin{codebox}
+\begin{verbatim}
+cd server
+npm start
+\end{verbatim}
+\end{codebox}
+
+Wait until the terminal shows the server is running on port 3001.
+
+\subsection{Step 5 --- Launch the App}
+
+Open the EVCharge app on the phone. The map should load and stations should appear.
+
+% ── Scenario B ────────────────────────────────────────────────────────────────
+\section{Scenario B --- Testing at Home (Same WiFi Router)}
+
+If the PC and phone are both connected to the same home WiFi router:
+
+\subsection{Step 1 --- Find the PC's IP Address}
+
+Open a terminal on the PC and run:
+
+\begin{codebox}
+\texttt{ipconfig}
+\end{codebox}
+
+Look for \textbf{Adresse IPv4} under the WiFi adapter. Example: \texttt{192.168.100.3}
+
+\subsection{Step 2 --- Update ServerConfig.kt}
+
+Replace the HOST value with the IP found above:
+
+\begin{codebox}
+\texttt{const val HOST = "192.168.100.3"} \quad \textit{(use your actual IP)}
+\end{codebox}
+
+\subsection{Step 3 --- Start the Server and Test}
+
+Same as Scenario A Steps 4 and 5.
+
+\begin{warnbox}
+\textbf{Home WiFi limitation:} The PC's IP from the router can change each time the PC
+restarts or reconnects. If stations stop appearing, re-run \texttt{ipconfig}, check the
+IP, and update \texttt{ServerConfig.kt}. This is why Scenario A (hotspot) is preferred
+for the presentation.
+\end{warnbox}
+
+% ── Build APK ────────────────────────────────────────────────────────────────
+\section{Building the Installable APK}
+
+\begin{warnbox}
+\textbf{Before building:} Make sure \texttt{ServerConfig.kt} has the correct HOST for
+the target scenario (Scenario A for presentation: \texttt{192.168.137.1}).
+\end{warnbox}
+
+\subsection{Step 1 --- Open the Project in Android Studio}
+
+Open Android Studio and open the folder:
+
+\begin{codebox}
+\texttt{MFE\_V2/EVCharge\_app/}
+\end{codebox}
+
+Wait for Gradle sync to complete (progress bar at the bottom).
+
+\subsection{Step 2 --- Select Build Variant}
+
+In Android Studio, go to:
+
+\begin{codebox}
+\textbf{Build} $\rightarrow$ \textbf{Select Build Variant} $\rightarrow$ choose \textbf{release}
+\end{codebox}
+
+\subsection{Step 3 --- Generate Signed APK}
+
+\begin{enumerate}[leftmargin=1.5cm]
+  \item Go to \textbf{Build} $\rightarrow$ \textbf{Generate Signed Bundle / APK}
+  \item Select \textbf{APK} and click \textbf{Next}
+  \item Select or create a keystore file (keep it safe --- needed for future updates)
+  \item Fill in key alias, key password, and store password
+  \item Click \textbf{Next}, select \textbf{release} build variant
+  \item Click \textbf{Finish}
+\end{enumerate}
+
+The signed APK will be generated at:
+
+\begin{codebox}
+\texttt{EVCharge\_app/app/release/app-release.apk}
+\end{codebox}
+
+\subsection{Step 4 --- Install on the Android Device}
+
+\textbf{Option A --- Direct USB install from Android Studio:}
+\begin{enumerate}[leftmargin=1.5cm]
+  \item Connect the phone via USB
+  \item Enable \textbf{Developer Options} and \textbf{USB Debugging} on the phone
+  \item Click the green \textbf{Run} button in Android Studio
+\end{enumerate}
+
+\textbf{Option B --- Manual APK transfer:}
+\begin{enumerate}[leftmargin=1.5cm]
+  \item Copy \texttt{app-release.apk} to the phone (via USB, email, or Google Drive)
+  \item On the phone, go to \textbf{Settings} $\rightarrow$ \textbf{Install unknown apps}
+        and allow installation from the file manager
+  \item Open the APK file on the phone and tap \textbf{Install}
+\end{enumerate}
+
+% ── Pre-demo checklist ────────────────────────────────────────────────────────
+\section{Pre-Demo Checklist}
+
+\begin{center}
+\renewcommand{\arraystretch}{1.5}
+\begin{tabular}{|p{0.5cm}|p{12cm}|}
+  \hline
+   $\square$ & \texttt{ServerConfig.kt} HOST is set to \texttt{192.168.137.1} \\ \hline
+  $\square$ & APK is built and installed on the Android device \\ \hline
+  $\square$ & Windows Mobile Hotspot is enabled on the PC \\ \hline
+  $\square$ & Phone is connected to the PC hotspot \\ \hline
+  $\square$ & MySQL database is running on the PC \\ \hline
+  $\square$ & Node.js server is started (\texttt{cd server \&\& npm start}) \\ \hline
+  $\square$ & App opens and stations appear on the map \\ \hline
+  $\square$ & A test session can be started and stopped \\ \hline
+\end{tabular}
+\end{center}
+
+% ── Quick Reference ───────────────────────────────────────────────────────────
+\section{Quick Reference --- IP Values}
+
+\begin{center}
+\renewcommand{\arraystretch}{1.5}
+\begin{tabular}{|>{\bfseries}p{5cm}|p{4cm}|p{5cm}|}
+  \hline
+  Scenario & HOST value & When to use \\ \hline
+  Presentation (hotspot) & \texttt{192.168.137.1} & Demo day --- always reliable \\ \hline
+  Home WiFi testing & \texttt{192.168.100.3} & Testing at home (may change) \\ \hline
+  Android Emulator & \texttt{10.0.2.2} & Running on PC emulator only \\ \hline
+\end{tabular}
+\end{center}
+
+\vspace{2em}
+\noindent\color{accent}\rule{\linewidth}{1pt}
+\begin{center}
+  \small\color{gray}
+  EV Charge DZ --- Fodhil Yacine \& Chibani Abderrahmane --- MFE 2025--2026
+\end{center}
+
+\end{document}

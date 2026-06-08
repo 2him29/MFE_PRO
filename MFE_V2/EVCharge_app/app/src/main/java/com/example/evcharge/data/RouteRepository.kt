@@ -31,7 +31,7 @@ data class NavStep(
 
 object RouteRepository {
 
-    private val BASE = "http://${ServerConfig.HOST}:${ServerConfig.PORT}/api/app/route"
+    private val BASE = "${ServerConfig.HTTP_BASE}api/app/route"
 
     suspend fun getRoute(from: GeoPoint, to: GeoPoint): Result<RouteResult> =
         withContext(Dispatchers.IO) {
