@@ -1,0 +1,47 @@
+# ── Dependencies ──────────────────────────────────────────────
+**/node_modules/
+
+# ── Environment / Secrets ─────────────────────────────────────
+**/.env
+**/.env.local
+**/.env.*.local
+# keep examples
+!**/.env.example
+# Firebase service-account key — never commit
+**/firebase-service-account.json
+# Android local SDK paths
+**/local.properties
+
+# ── Build outputs ─────────────────────────────────────────────
+**/dist/
+**/build/
+**/.vite/
+
+# ── LaTeX auxiliary files ─────────────────────────────────────
+*.aux
+*.log
+*.out
+*.toc
+*.lof
+*.lot
+*.bbl
+*.bcf
+*.blg
+*.run.xml
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+*.nav
+*.snm
+*.vrb
+
+# ── PlantUML JAR (large binary) ───────────────────────────────
+diagramme/plantuml.jar
+
+# ── OS / Editor junk ──────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/settings.json
+*.swp
+*~

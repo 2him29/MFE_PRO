@@ -1,0 +1,68 @@
+@startuml SeqFCM
+title Sequence Diagram — Firebase Cloud Messaging (Token Registration & Notification Dispatch)
+
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName Arial
+skinparam defaultFontSize 10
+skinparam dpi 180
+skinparam sequenceArrowThickness 1.5
+skinparam responseMessageBelowArrow true
+skinparam maxMessageSize 160
+skinparam sequenceGroupBorderThickness 1.5
+
+actor       "Driver"                    as DRIVER
+participant "EvChargeMessagingService"  as FCM_SVC
+participant "App Backend"               as BACKEND
+database    "MySQL Database"            as DB
+participant "Firebase Admin SDK"        as ADMIN
+participant "FCM Service (Google)"      as FCM
+actor       "Operator"                  as OPERATOR
+participant "Operator Dashboard"        as DASH
+
+== Phase 1: FCM Token Registration ==
+
+DRIVER  -> BACKEND   : POST /api/app/auth/login
+BACKEND --> DRIVER   : { jwt, user }
+FCM_SVC -> FCM_SVC   : onNewToken(fcmToken)\n[Firebase SDK callback on login\nor token rotation]
+FCM_SVC -> BACKEND   : POST /api/app/auth/fcm-token\n{ token: fcmToken }
+BACKEND -> DB        : UPDATE app_users\nSET fcm_token = ?\nWHERE app_user_id = ?
+DB      --> BACKEND  : OK
+BACKEND --> FCM_SVC  : 200 OK
+
+== Phase 2: Operator Triggers Notification ==
+
+OPERATOR -> DASH     : Select notification type,\ntitle, body, city filter
+DASH     -> BACKEND  : POST /api/notifications/send\n{ type, title, body, stationId?, cityFilter? }
+
+BACKEND  -> DB       : Query relevant FCM tokens\nbased on type + targeting rules
+DB       --> BACKEND : [ fcmToken1, fcmToken2, ... ]
+
+BACKEND  -> ADMIN    : admin.messaging()\n.sendEachForMulticast({ tokens, notification })
+ADMIN    -> FCM      : Dispatch to FCM Service
+
+alt Delivery successful
+  FCM     --> ADMIN   : { successCount, failureCount }
+  ADMIN   --> BACKEND : Multicast result
+  BACKEND -> DB       : INSERT INTO notifications\n{ type, title, body, recipients_count }
+  DB      --> BACKEND : OK
+  BACKEND --> DASH    : { sent: true, recipientsCount }
+  DASH    -> OPERATOR : Show delivery confirmation
+
+  == Phase 3: Notification Received on Device ==
+
+  FCM     -> FCM_SVC  : onMessageReceived(message)
+  FCM_SVC -> FCM_SVC  : Route to notification channel\n(station_updates / tariff_updates\n/ announcements)
+  FCM_SVC -> FCM_SVC  : Persist to SharedPreferences\nas JSON entry
+  FCM_SVC -> DRIVER   : Display push notification
+
+  DRIVER  -> FCM_SVC  : Open NotificationsScreen
+  FCM_SVC -> DRIVER   : Show chronological\nnotification history
+
+else FCM delivery failure
+  FCM     --> ADMIN   : Error / invalid token
+  ADMIN   --> BACKEND : Failure response
+  BACKEND -> DB       : Log failed delivery
+  BACKEND --> DASH    : { sent: false, error }
+end
+
+@enduml

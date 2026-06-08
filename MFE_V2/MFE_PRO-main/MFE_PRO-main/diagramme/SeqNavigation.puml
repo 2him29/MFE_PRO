@@ -1,0 +1,72 @@
+@startuml SeqNavigation
+title Sequence Diagram — Navigation with OpenRouteService Proxy
+
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName Arial
+skinparam defaultFontSize 10
+skinparam dpi 180
+skinparam sequenceArrowThickness 1.5
+skinparam responseMessageBelowArrow true
+skinparam maxMessageSize 160
+skinparam sequenceGroupBorderThickness 1.5
+
+actor       "Driver"               as DRIVER
+participant "StationCard"          as CARD
+participant "NavigationViewModel"  as VM
+participant "RouteRepository"      as REPO
+participant "Backend Server"       as BACKEND
+participant "OpenRouteService"     as ORS
+participant "NavigationScreen"     as NAV
+
+== Step 1: Route Request ==
+
+DRIVER -> CARD    : Tap "Navigate" button
+CARD   -> VM      : loadRoute(startLat, startLng,\ndestLat, destLng)
+VM     -> VM      : Set state = Loading
+VM     -> REPO    : getRoute(start, destination)
+REPO   -> BACKEND : GET /api/app/route\n?start=lng,lat&end=lng,lat
+
+== Step 2: ORS Proxy ==
+
+BACKEND -> ORS    : Forward request to ORS API\n(server-side API key)
+
+alt ORS responds within 15 seconds
+  ORS --> BACKEND : GeoJSON FeatureCollection\n(geometry + steps)
+  BACKEND --> REPO : Relay GeoJSON response
+
+  == Step 3: Route Parsing ==
+
+  REPO -> REPO    : Parse GeoJSON →\nList<GeoPoint> + List<NavStep>
+  REPO --> VM     : Result.success(RouteResult)
+  VM   -> VM      : Set state = Success\n(polyline + stepList)
+  VM   --> NAV    : Emit route state
+
+  == Step 4: Navigation Display ==
+
+  DRIVER -> NAV   : NavigationScreen opens
+  NAV    -> NAV   : Draw route polyline\non OSMDroid map
+  NAV    -> NAV   : Display first instruction\n(distance + maneuver)
+
+  == Step 5: Step-by-Step Progression ==
+
+  loop Driver advances along route
+    DRIVER -> NAV : Tap "Next Step"
+    NAV    -> VM  : nextStep()
+    VM     -> VM  : Increment step index
+    VM    --> NAV : Emit updated step
+    NAV    -> NAV : Update instruction panel
+  end
+
+  DRIVER -> NAV   : Arrive at station
+  NAV    -> VM    : Route complete
+  VM    --> NAV   : Clear navigation state
+
+else ORS timeout or error
+  ORS --> BACKEND : Timeout / error
+  BACKEND --> REPO : HTTP 502 / 504
+  REPO --> VM     : Result.failure(exception)
+  VM   -> VM      : Set state = Error
+  VM  --> NAV     : Show error message to driver
+end
+
+@enduml

@@ -1,0 +1,120 @@
+@startuml UseCaseDiag
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName Arial
+skinparam defaultFontSize 10
+skinparam dpi 180
+skinparam nodesep 10
+skinparam ranksep 15
+
+skinparam actor {
+  BorderColor #1E3A8A
+  FontColor #1E293B
+  BackgroundColor #EFF6FF
+}
+skinparam usecase {
+  BorderColor #2563EB
+  BackgroundColor #EFF6FF
+  FontColor #1E293B
+  ArrowColor #64748B
+}
+
+left to right direction
+
+actor "Super Admin"  as SA
+actor "Tenant Admin" as TA
+actor "Technician"   as TECH
+
+rectangle "EV Charge DZ — Admin Platform" {
+
+  package "Authentication" {
+    usecase "Login"                as UC_LOGIN
+    usecase "Verify OTP (2FA)"    as UC_OTP
+    usecase "Select Tenant"       as UC_TENANT
+  }
+
+  package "Dashboard" {
+    usecase "View KPIs"           as UC_DASH
+    usecase "KPI Drilldown"       as UC_DRILL
+  }
+
+  package "Station Management" {
+    usecase "View Stations"       as UC_STA_VIEW
+    usecase "Create / Edit"       as UC_STA_EDIT
+    usecase "Change Status"       as UC_STA_STATUS
+    usecase "Manage Tariffs"      as UC_STA_TARIF
+  }
+
+  package "Charging Sessions" {
+    usecase "Monitor Sessions"    as UC_SES_VIEW
+    usecase "Stop Session"        as UC_SES_STOP
+  }
+
+  package "Tickets & Incidents" {
+    usecase "View Tickets"        as UC_TKT_VIEW
+    usecase "Create Ticket"       as UC_TKT_CREATE
+    usecase "Assign Ticket"       as UC_TKT_ASSIGN
+    usecase "Update Status"       as UC_TKT_UPDATE
+    usecase "View My Tasks"       as UC_TASKS
+  }
+
+  package "Billing" {
+    usecase "View Invoices"       as UC_BILL_VIEW
+    usecase "Analyze Payments"    as UC_BILL_STATS
+    usecase "Export CSV"          as UC_EXPORT
+  }
+
+  package "User Management" {
+    usecase "Create User"         as UC_USR_CREATE
+    usecase "Suspend User"        as UC_USR_SUSP
+    usecase "Manage Privileges"   as UC_USR_PRIV
+  }
+}
+
+SA --> UC_LOGIN
+SA --> UC_OTP
+SA --> UC_TENANT
+SA --> UC_DASH
+SA --> UC_DRILL
+SA --> UC_STA_VIEW
+SA --> UC_STA_EDIT
+SA --> UC_STA_STATUS
+SA --> UC_STA_TARIF
+SA --> UC_SES_VIEW
+SA --> UC_SES_STOP
+SA --> UC_TKT_VIEW
+SA --> UC_TKT_CREATE
+SA --> UC_TKT_ASSIGN
+SA --> UC_BILL_VIEW
+SA --> UC_BILL_STATS
+SA --> UC_EXPORT
+SA --> UC_USR_CREATE
+SA --> UC_USR_SUSP
+SA --> UC_USR_PRIV
+
+TA --> UC_LOGIN
+TA --> UC_DASH
+TA --> UC_DRILL
+TA --> UC_STA_VIEW
+TA --> UC_STA_EDIT
+TA --> UC_STA_STATUS
+TA --> UC_STA_TARIF
+TA --> UC_SES_VIEW
+TA --> UC_SES_STOP
+TA --> UC_TKT_VIEW
+TA --> UC_TKT_CREATE
+TA --> UC_TKT_ASSIGN
+TA --> UC_BILL_VIEW
+TA --> UC_BILL_STATS
+TA --> UC_EXPORT
+
+TECH --> UC_LOGIN
+TECH --> UC_DASH
+TECH --> UC_TKT_VIEW
+TECH --> UC_TKT_UPDATE
+TECH --> UC_TASKS
+
+UC_LOGIN ..> UC_OTP   : <<include>>\nSuper Admin only
+UC_DASH  ..> UC_DRILL : <<extend>>
+UC_TASKS ..> UC_TKT_UPDATE : <<include>>
+
+@enduml
